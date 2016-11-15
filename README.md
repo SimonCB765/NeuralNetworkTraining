@@ -5,15 +5,19 @@
     1. [Usage](#data-proc-usage)
     2. [Configuration File Formats](#data-proc-configuration-file-formats)
 
-# Overview <a name="overview"></a>
+<a name="overview"></a>
+# Overview
 
 General description of the features, packages and use case scenarios.
 
-# Data Processing <a name="data-processing"></a>
+<a name="data-processing"></a>
+# Data Processing
 
-## Usage <a name="data-proc-usage"></a>
+<a name="data-proc-usage"></a>
+## Usage
 
-## Configuration File Formats <a name="data-proc-configuration-file-formats"></a>
+<a name="data-proc-configuration-file-formats"></a>
+## Configuration File Formats
 
 should be a dictionary for target data and one for training data (target data in separate file), for the sequences the output and input are assumed to be in the same order (i.e. input in row 1 has its output as row 1 in target file)
 
