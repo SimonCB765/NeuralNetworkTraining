@@ -1,0 +1,17 @@
+{
+  "examplesPerShard": 100,
+  "exampleTestFraction": 0.15,
+  "exampleValidateFraction": 0.15,
+  "Input": {
+    "columnSeparator": "\t",
+    "columnsToIgnore": [],
+    "exampleIDColumn": false,
+    "headerPresent": false
+  },
+  "Output":{
+    "columnSeparator": "\t",
+    "columnsToIgnore": [],
+    "exampleIDColumn": false,
+    "headerPresent": false
+  }
+}

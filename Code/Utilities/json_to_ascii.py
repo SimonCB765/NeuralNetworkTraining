@@ -1,7 +1,7 @@
 """Code to convert a JSON object from unicode to ascii strings."""
 
 
-def json_to_ascii(jsonObject):
+def main(jsonObject):
     """Convert a JSON object from unicode to ascii strings.
 
     This function assumes that the Python version is 2.x (else there is no need to use it).
