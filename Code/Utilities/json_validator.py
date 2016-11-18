@@ -213,11 +213,28 @@ class Validator(object):
                         str(instance), (" or equal to" if exclsiveMax else ""), str(maximum)
                     ))
 
+    def _validate_maxItems(self, maxItems, instance, schema):
+        """Validate a maximum number of items constraint holds for the instance.
+
+        :param maxItems:    The maximum number of items to validate against.
+        :type maxItems:     int
+        :param instance:    The schema instance being validated.
+        :type instance:     str
+        :param schema:      The schema the instance is being validated against.
+        :type schema:       dict
+
+        """
+
+        # Validate the number of items.
+        if self._is_type(maxItems, "integer") and maxItems >= 0 and self._is_type(instance, "array") and \
+                len(instance) >= maxItems:
+            yield ValidationError("{:s} has more items than the maximum of {:d}.".format(str(instance), maxItems))
+
     def _validate_maxLength(self, maxLength, instance, schema):
         """Validate a maximum length constraint holds for the instance.
 
         :param maxLength:   The maximum length to validate against.
-        :type maxLength:    int | float
+        :type maxLength:    int
         :param instance:    The schema instance being validated.
         :type instance:     str
         :param schema:      The schema the instance is being validated against.
@@ -259,11 +276,28 @@ class Validator(object):
                         str(instance), (" or equal to" if exclsiveMin else ""), str(minimum)
                     ))
 
+    def _validate_minItems(self, minItems, instance, schema):
+        """Validate a minimum number of items constraint holds for the instance.
+
+        :param minItems:    The minimum number of items to validate against.
+        :type minItems:     int
+        :param instance:    The schema instance being validated.
+        :type instance:     str
+        :param schema:      The schema the instance is being validated against.
+        :type schema:       dict
+
+        """
+
+        # Validate the number of items.
+        if self._is_type(minItems, "integer") and minItems >= 0 and self._is_type(instance, "array") and \
+                len(instance) <= minItems:
+            yield ValidationError("{:s} has fewer items than the minimum of {:d}.".format(str(instance), minItems))
+
     def _validate_minLength(self, minLength, instance, schema):
         """Validate a minimum length constraint holds for the instance.
 
         :param minLength:   The minimum length to validate against.
-        :type minLength:    int | float
+        :type minLength:    int
         :param instance:    The schema instance being validated.
         :type instance:     str
         :param schema:      The schema the instance is being validated against.
