@@ -116,16 +116,16 @@ class Validator(object):
         else:
             raise TypeError("Schema must be a string or dictionary.")
 
-        # Validate the schema against the saved meta-schema if desired.
-        if checkValidity:
-            self.validate_instance(self._schema, self.metaSchema)
-
         # Add additional types.
         self._types = dict(self.defaultTypes)
         if types:
             types = {i: tuple(j) for i, j in iteritems(types)}
             self._types.update(types)
         self._types["any"] = tuple(self._types.values())  # Generate the record for an any type validator.
+
+        # Validate the schema against the saved meta-schema if desired.
+        if checkValidity:
+            self.validate_instance(self._schema, self.metaSchema)
 
     def _is_type(self, instance, typeToCheck):
         """Determine if a given instance is of the specified type.
@@ -573,7 +573,7 @@ Validator.metaSchema = {
 
 
 def main(instance, schema, types=None):
-    """
+    """Perform validation of a schema instance against the schema it should follow.
 
     :param instance:    The JSON instance to validate. This can be either a file location, a JSON object saved as
                         a string or a loaded JSON object.
