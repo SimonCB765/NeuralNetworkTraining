@@ -184,6 +184,70 @@ class Validator(object):
                 error.validator = error.validator if error.validator else validatorName
                 yield error
 
+    def _validate_additionalItems(self, addItems, instance, schema):
+        """Validate additional items in an instance of an items definition against the schema it should match.
+
+        :param addItems:    The additional item definition being validated against.
+        :type addItems:     dict | bool
+        :param instance:    The schema instance being validated.
+        :type instance:     list
+        :param schema:      The schema the instance is being validated against.
+        :type schema:       dict
+
+        """
+
+        # Ensure we are only validating lists.
+        if not self._is_type(instance, "array"):
+            return
+
+        # Additional items only matter when the items schema definition is an array of schemas, as otherwise you can
+        # make the array of items as long as you want.
+        if not self._is_type(schema.get("items"), "array"):
+            return
+
+        # Validate the additional items.
+        if self._is_type(addItems, "object"):
+            for item in instance[len(instance[len(schema.get("items", [])):])]:
+                for error in self._validate(addItems, item):
+                    yield error
+        elif self._is_type(addItems, "boolean") and not addItems and len(instance) > len(schema.get("items", [])):
+            # If additionalItems is a boolean, then we are only interested in validating when it is false (as if it is
+            # true you can just add as many additional items as you want). If additionalItems is false and the length
+            # of the array of items is longer than the schema definition, you have a validation error.
+            yield ValidationError("Additional items {:s} not allowed.".format(
+                ', '.join(instance[len(schema.get("items", [])):])
+            ))
+
+    def _validate_items(self, items, instance, schema):
+        """Validate an instance of an items definition against the schema it should match.
+
+        :param items:       The item definition being validated against.
+        :type items:        dict | list[dict]
+        :param instance:    The schema instance being validated.
+        :type instance:     list
+        :param schema:      The schema the instance is being validated against.
+        :type schema:       dict
+
+        """
+
+        # Ensure we are only validating lists.
+        if not self._is_type(instance, "array"):
+            return
+
+        # Validate the items instance.
+        if self._is_type(items, "object"):
+            # Validate each item in the instance against the single schema for the items.
+            for index, item in enumerate(instance):
+                for error in self._validate(items, items):
+                    error.path.insert(0, index)
+                    yield error
+        elif self._is_type(items, "array"):
+            # Validate each item in the instance against the array of schemas for the items.
+            for (index, item), subschema in zip(enumerate(instance), items):
+                for error in self._validate(item, subschema):
+                    error.path.insert(0, index)
+                    yield error
+
     def _validate_maximum(self, maximum, instance, schema):
         """Validate a maximum constraint holds for the instance.
 
