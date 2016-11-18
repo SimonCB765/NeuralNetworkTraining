@@ -15,6 +15,7 @@ The simplest way to validate a JSON instance against a schema is to call the :fu
 import json
 import operator
 import os
+import re
 import sys
 
 # Standardise variables and methods needed for both Python versions.
@@ -224,6 +225,7 @@ class Validator(object):
 
         """
 
+        # Validate length.
         if self._is_type(maxLength, "integer") and maxLength >= 0 and self._is_type(instance, "string") and \
                 len(instance) > maxLength:
             yield ValidationError("{:s} is longer than the maximum length of {:d}.".format(instance, maxLength))
@@ -269,6 +271,7 @@ class Validator(object):
 
         """
 
+        # Validate length.
         if self._is_type(minLength, "integer") and minLength >= 0 and self._is_type(instance, "string") and \
                 len(instance) < minLength:
             yield ValidationError("{:s} is shorter than the minimum length of {:d}.".format(instance, minLength))
@@ -291,6 +294,22 @@ class Validator(object):
             if not int(instance % multiple) == (instance % multiple):
                 # Validation fails if the instance is not an integer multiple of the given value.
                 yield ValidationError("{:s} is not an integer multiple of {:s}.".format(str(instance), str(multiple)))
+
+    def _validate_pattern(self, pattern, instance, schema):
+        """Validate an instance against a pattern.
+
+        :param pattern:     The pattern to validate against.
+        :type pattern:      str
+        :param instance:    The schema instance being validated.
+        :type instance:     str
+        :param schema:      The schema the instance is being validated against.
+        :type schema:       dict
+
+        """
+
+        # Validate that the instance is an instance f the given pattern.
+        if self._is_type(pattern, "string") and self._is_type(instance, "string") and not re.match(pattern, instance):
+            yield ValidationError("{:s} does not match the pattern {:s}.".format(instance, pattern))
 
     def _validate_properties(self, properties, instance, schema):
         """Validate the properties object of the instance.
