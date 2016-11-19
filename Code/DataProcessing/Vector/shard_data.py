@@ -33,68 +33,6 @@ def main(fileExamples, dirOutput, config, fileTargets=None):
     pass
 
 
-def validate_config(config):
-    """Validate a Configuration object in the context of sharding vector data.
-
-    :param config:  The object to validate.
-    :type config:   Configuration.Configuration
-    :return:        Any errors found.
-    :rtype:         list
-
-    """
-
-    errorsFound = []  # The errors discoverd while validating the configuration parameters.
-
-    # Validate the number of examples per sharded file.
-    if "examplesPerShard" not in config:
-        config.examplesPerShard = 100
-    elif config.examplesPerShard < 1:
-        errorsFound.append("The number of examples per shard must be at least 1.")
-
-    # Validate the fraction of examples to be held out for testing.
-    if "exampleTestFraction" not in config:
-        config.exampleTestFraction = 0
-    elif config.exampleTestFraction < 0:
-        errorsFound.append("The fraction of examples held back for testing can not be less than 0.")
-
-    # Validate the fraction of examples to be held out for validation.
-    if "exampleValidateFraction" not in config:
-        config.exampleValidateFraction = 0
-    elif config.exampleValidateFraction < 0:
-        errorsFound.append("The fraction of examples held back for validation can not be less than 0.")
-
-    # Validate the input example parameters.
-    if "Input" in config:
-        pass
-    else:
-        errorsFound.append("No input example parameters were provided.")
-
-    # Validate the target parameters.
-    if "Output" in config:
-        pass
-    else:
-        errorsFound.append("No target parameters were provided")
-
-    """
-
-  "Input": {
-    "columnSeparator": "\t",
-    "columnsToIgnore": [],
-    "exampleIDColumn": false,
-    "headerPresent": false
-  },
-  "Output":{
-    "columnSeparator": "\t",
-    "columnsToIgnore": [],
-    "exampleIDColumn": false,
-    "headerPresent": false
-  }
-
-    """
-
-    return errorsFound
-
-
 if __name__ == "__main__":
     # ====================== #
     # Create Argument Parser #
@@ -130,10 +68,12 @@ if __name__ == "__main__":
     dirCurrent = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory containing this file.
     dirTop = os.path.abspath(os.path.join(dirCurrent, os.pardir, os.pardir, os.pardir))
     fileDefaultConfig = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "DataProcessing", "Vector.json"))
+    fileConfigSchema = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "DataProcessing", "Schema.json"))
     errorsFound = []  # Container for any error messages generated during the validation.
 
     # Set default parameter values.
-    config = Configuration.Configuration(fileDefaultConfig)
+    config = Configuration.Configuration()
+    config.set_from_json(fileDefaultConfig, fileConfigSchema)
 
     # Validate the input example file.
     fileDataset = args.input
@@ -161,20 +101,20 @@ if __name__ == "__main__":
     elif os.path.exists(dirOutput):
         errorsFound.append("The output directory location already exists and overwriting is not enabled.")
 
-    # Validate and set any user supplied configuration parameters.
-    if args.config:
-        if not os.path.isfile(args.config):
-            errorsFound.append("The supplied location of the configuration file is not a file.")
-        else:
-            config.set_from_json(args.config)
-    configErrors = validate_config(config)
-    errorsFound.extend(configErrors)
-
     # Display errors if any were found.
     if errorsFound:
         print("\n\nThe following errors were encountered while parsing the input arguments:\n")
         print('\n'.join(errorsFound))
         sys.exit()
+
+    # Validate and set any user supplied configuration parameters.
+    if args.config:
+        if not os.path.isfile(args.config):
+            print("\n\nThe following errors were encountered while parsing the input arguments:\n")
+            print("The supplied location of the configuration file is not a file.")
+            sys.exit()
+        else:
+            config.set_from_json(args.config, fileConfigSchema)
 
     # Only create the output directory if there were no errors encountered.
     try:

@@ -2,13 +2,12 @@
 
 # Python import.
 import json
-import sys
 
 # User imports.
 from . import change_json_encoding
 
 # 3rd party imports.
-from . import jsonschema
+import jsonschema
 
 
 class Configuration(object):
@@ -16,49 +15,72 @@ class Configuration(object):
     # Default variables.
     isLogging = True
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         """Initialise a Configuration object.
 
-        Parameters supplied as kwargs take precedence. Therefore, any kwargs supplied that are also in one of the args
-        files will overwrite the args file value. Similarly, args files later in the list of arguments will take
-        precedence over earlier ones.
-
-        :param args:        The location of files containing JSON formatted configuration information that should
-                            be used to initialise the Configuration object.
-        :type args:         tuple
-        :param kwargs:      Any additional configuration parameters to set.
-        :type kwargs:       dict
+        :param kwargs:  Keyword arguments to initialise.
+        :type kwargs:   dict
 
         """
 
-        # Initialise the configuration parameters from JSON files.
-        for i in args:
-            self.set_from_json(i)
+        # Initialise any arguments supplied at creation.
+        self.set_from_dict(kwargs)
+
+    def set_from_dict(self, paramsToAdd):
+        """Set configuration parameters from a dictionary of parameters.
+
+        :param paramsToAdd:  Parameters to add.
+        :type paramsToAdd:   dict
+
+        """
 
         # Initialise any arguments supplied at creation.
-        for i in kwargs:
-            self.__dict__[i] = kwargs[i]
+        for i in paramsToAdd:
+            self.__dict__[i] = paramsToAdd[i]
 
-    def set_from_json(self, fileConfig):
-        """Add parameters to a Configuration object from a JSON formatted file.
+    def set_from_json(self, config, schema, newEncoding=None):
+        """Add parameters to a Configuration object from a JSON formatted file or dict.
 
-        :param fileConfig:  The location of a file containing JSON formatted configuration information.
-        :type fileConfig:   str
+        :param config:      The location of a JSON file or a loaded JSON object containing the configuration information
+                            to add.
+        :type config:       str | dict
+        :param schema:      The schema that the configuration information must be validated against. This can either
+                            be a file location or a loaded JSON object.
+        :type schema:       str | dict
+        :param newEncoding: The encoding to convert all strings in the JSON configuration object to.
+        :type newEncoding:  str
 
         """
 
         # Extract the JSON data.
-        fid = open(fileConfig, 'r')
-        configData = json.load(fid)
-        fid.close()
+        if isinstance(config, str):
+            fid = open(config, 'r')
+            config = json.load(fid)
+            if newEncoding:
+                change_json_encoding.main(config, newEncoding)
+            fid.close()
 
-        # Validate the JSON data.
+        # Extract the schema information.
+        if isinstance(schema, str):
+            fid = open(schema, 'r')
+            schema = json.load(fid)
+            fid.close()
 
-        # Convert the JSON data to ascii if needed.
-        versionNum = sys.version_info[0]  # Determine major version number.
-        if versionNum == 2:
-            configData = change_json_encoding.main(configData)
+        # Validate the configuration data.
+        jsonschema.validate(config, schema)
 
         # Add the JSON parameters to the configuration parameters.
-        for i in configData:
-            self.__dict__[i] = configData[i]
+        for i in config:
+            self.__dict__[i] = config[i]
+
+    def set_from_keyword(self, **kwargs):
+        """Set configuration parameters from keywords.
+
+        :param kwargs:  Parameters to add.
+        :type kwargs:   dict
+
+        """
+
+        # Initialise any arguments supplied at creation.
+        for i in kwargs:
+            self.__dict__[i] = kwargs[i]

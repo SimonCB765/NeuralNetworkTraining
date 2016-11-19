@@ -19,6 +19,12 @@ General description of the features, packages and use case scenarios.
 <a name="data-proc-configuration-file-formats"></a>
 ## Configuration File Formats
 
+See the following links for information on JSON schema:
+
+- http://json-schema.org/
+- https://spacetelescope.github.io/understanding-json-schema/
+- https://spacetelescope.github.io/understanding-json-schema/UnderstandingJSONSchema.pdf
+
 example, target, output and overwrite are not in configuration file but instead are command line parameters
 
 should be a dictionary for target data and one for training data (target data in separate file), for the sequences the output and input are assumed to be in the same order (i.e. input in row 1 has its output as row 1 in target file)
