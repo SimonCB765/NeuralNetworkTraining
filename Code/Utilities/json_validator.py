@@ -14,7 +14,6 @@ explicitly fails.
 The simplest way to validate a JSON instance against a schema is to call the :func:`main` function.
 
 The missing components of draft 4 are:
-    The required property is not checked for valid formatting. Required properties are still enforced.
     Pattern properties are not included.
     Additional properties are not included.
     Definitions are not included.
@@ -541,11 +540,25 @@ class Validator(object):
                     for error in self._validate(instance[prop], subschema):
                         error.path.insert(0, prop)  # Prepend the property to the error path.
                         yield error
-                elif subschema.get("required", False):
-                    error = ValidationError("{:s} is a required property.".format(prop))
-                    error.path.insert(0, prop)  # Prepend the property to the error path.
-                    error.validator = "required"
-                    yield error
+
+    def _validate_required(self, required, instance, schema):
+        """Validate that all required properties are present in the instance.
+
+        :param required:    The required properties.
+        :type required:     list
+        :param instance:    The schema instance being validated.
+        :type instance:     dict
+        :param schema:      The schema the instance is being validated against.
+        :type schema:       dict
+
+        """
+
+        # Validate required properties.
+        if self._is_type(instance, "object"):
+            # Only perform validation if the instance is an object.
+            for prop in required:
+                if prop not in instance:
+                    yield ValidationError("{:s} is required property and must be present.".format(str(prop)))
 
     def _validate_type(self, typeDef, instance, schema):
         """Validate that an instance is of the correct type.
