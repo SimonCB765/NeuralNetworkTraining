@@ -311,6 +311,29 @@ class Validator(object):
                 len(instance) > maxLength:
             yield ValidationError("{:s} is longer than the maximum length of {:d}.".format(instance, maxLength))
 
+    def _validate_maxProperies(self, maxProp, instance, schema):
+        """Validate that an instance has no more than a maximum number of properties.
+
+        :param maxProp:     The maximum number of properties to validate against.
+        :type maxProp:      int
+        :param instance:    The schema instance being validated.
+        :type instance:     dict
+        :param schema:      The schema the instance is being validated against.
+        :type schema:       dict
+
+        """
+
+        # Validate the maximum number of properties.
+        if self._is_type(instance, "object"):
+            # Only validate instances that are objects.
+            if self._is_type(maxProp, "integer") and maxProp >= 0:
+                # Only validate when the maximum number is an integer greater than or equal to 0.
+                if len(instance) > maxProp:
+                    yield ValidationError(
+                        "The number of properties {:d} was greater than the maximum allowed {:d}".format(
+                            len(instance), maxProp
+                        ))
+
     def _validate_minimum(self, minimum, instance, schema):
         """Validate a minimum constraint holds for the instance.
 
@@ -374,6 +397,28 @@ class Validator(object):
                 len(instance) < minLength:
             yield ValidationError("{:s} is shorter than the minimum length of {:d}.".format(instance, minLength))
 
+    def _validate_minProperies(self, minProp, instance, schema):
+        """Validate that an instance has no fewer than a minimum number of properties.
+
+        :param minProp:     The minimum number of properties to validate against.
+        :type minProp:      int
+        :param instance:    The schema instance being validated.
+        :type instance:     dict
+        :param schema:      The schema the instance is being validated against.
+        :type schema:       dict
+
+        """
+
+        # Validate the minimum number of properties.
+        if self._is_type(instance, "object"):
+            # Only validate instances that are objects.
+            if self._is_type(minProp, "integer") and minProp >= 0:
+                # Only validate when the minimum number is an integer greater than or equal to 0.
+                if len(instance) < minProp:
+                    yield ValidationError("The number of properties {:d} was less than the minimum allowed {:d}".format(
+                        len(instance), minProp
+                    ))
+
     def _validate_multipleOf(self, multiple, instance, schema):
         """Validate a multiple of constraint holds for the instance.
 
@@ -436,6 +481,25 @@ class Validator(object):
                     error.path.insert(0, prop)  # Prepend the property to the error path.
                     error.validator = "required"
                     yield error
+
+    def _validate_uniqueItems(self, isUnique, instance, schema):
+        """Validate that a unique items constraint holds for the instance.
+
+        This check assumes that the items are hashable and can therefore be turned into a set.
+
+        :param isUnique:    Whether unique items are being enforced.
+        :type isUnique:     bool
+        :param instance:    The schema instance being validated.
+        :type instance:     list
+        :param schema:      The schema the instance is being validated against.
+        :type schema:       dict
+
+        """
+
+        # Validate that all items are unique.
+        if self._is_type(isUnique, "boolean") and isUnique and self._is_type(instance, "array") and \
+                (len(set(instance)) == len(instance)):
+            yield ValidationError("{:s} has non-unique elements.".format(str(instance)))
 
     def validate_instance(self, instance, schema=None):
         """Validate an instance of a schema against the schema.
