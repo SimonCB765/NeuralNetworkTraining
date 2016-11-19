@@ -1,5 +1,9 @@
 """
-A cutdown JSON schema implementation validator for Python (with optional unicode to ascii string conversion).
+A simpkified JSON schema draft 4 validator for Python (with optional unicode to ascii string conversion). See the
+following links for information on JSON schema:
+    http://json-schema.org/
+    https://spacetelescope.github.io/understanding-json-schema/
+    https://spacetelescope.github.io/understanding-json-schema/UnderstandingJSONSchema.pdf
 
 As per the JSON schema, keywords only limit the range of values of certain primitive types. For example,
 "the 'maxLength' keyword will only restrict certain strings (that are too long) from being valid. If the instance is a
@@ -8,6 +12,11 @@ missing do not prevent validation occurring. The validation therefore permits ev
 explicitly fails.
 
 The simplest way to validate a JSON instance against a schema is to call the :func:`main` function.
+
+The missing components of draft 4 are:
+    The required property is not checked for valid formatting. Required properties are still enforced.
+    Pattern properties are not included.
+    Additional properties are not included.
 
 """
 
@@ -217,6 +226,40 @@ class Validator(object):
             yield ValidationError("Additional items {:s} not allowed.".format(
                 ', '.join(instance[len(schema.get("items", [])):])
             ))
+
+    def validate_dependencies(self, dependencies, instance, schema):
+        """Validate the dependencies of an instance.
+
+        :param dependencies:    The dependencies definition being validated against.
+        :type dependencies:     dict
+        :param instance:        The schema instance being validated.
+        :type instance:
+        :param schema:          The schema the instance is being validated against.
+        :type schema:           dict
+
+        """
+
+        # Only validate objects.
+        if not self._is_type(instance, "object"):
+            return
+
+        # Validate the dependencies.
+        for prop, dependency in iteritems(dependencies):
+            if prop not in instance:
+                # Only care about dependencies when the property is present.
+                continue
+
+            # Validate an individual dependency.
+            if self._is_type(dependency, "object"):
+                # The dependency is a schema dependency.
+                for error in self._validate(instance, dependency):
+                    yield error
+            elif self._is_type(dependency, "array"):
+                # The dependency is a property dependency.
+                dependency = [dependency] if isinstance(dependency, basestring) else dependency
+                for i in dependency:
+                    if i not in instance:
+                        yield ValidationError("{:s} is a missing dependency of {:s}.".format(i, prop))
 
     def _validate_items(self, items, instance, schema):
         """Validate an instance of an items definition against the schema it should match.
