@@ -5,7 +5,10 @@ import json
 import sys
 
 # User imports.
-from . import json_to_ascii
+from . import change_json_encoding
+
+# 3rd party imports.
+from . import jsonschema
 
 
 class Configuration(object):
@@ -49,10 +52,12 @@ class Configuration(object):
         configData = json.load(fid)
         fid.close()
 
+        # Validate the JSON data.
+
         # Convert the JSON data to ascii if needed.
         versionNum = sys.version_info[0]  # Determine major version number.
         if versionNum == 2:
-            configData = json_to_ascii.main(configData)
+            configData = change_json_encoding.main(configData)
 
         # Add the JSON parameters to the configuration parameters.
         for i in configData:
