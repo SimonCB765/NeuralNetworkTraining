@@ -17,6 +17,12 @@ The missing components of draft 4 are:
     The required property is not checked for valid formatting. Required properties are still enforced.
     Pattern properties are not included.
     Additional properties are not included.
+    Definitions are not included.
+    ID is ignored.
+    $schema is ignored.
+    Description is ignored.
+    Title is ignored.
+    Default is ignored.
 
 """
 
@@ -540,6 +546,25 @@ class Validator(object):
                     error.path.insert(0, prop)  # Prepend the property to the error path.
                     error.validator = "required"
                     yield error
+
+    def _validate_type(self, typeDef, instance, schema):
+        """Validate that an instance is of the correct type.
+
+        :param typeDef:     The type(s) that the instance is permitted to be.
+        :type typeDef:      str | list
+        :param instance:    The schema instance being validated.
+        :type instance:     str
+        :param schema:      The schema the instance is being validated against.
+        :type schema:       dict
+
+        """
+
+        # Ensure that the typeDef is iterable (as it can be a single string).
+        typeDef = [typeDef] if isinstance(typeDef, basestring) else typeDef
+
+        # Validate the type of the instance.
+        if not any(self._is_type(instance, i) for i in typeDef):
+            yield ValidationError("{:s} is not of type {:s}.".format(str(instance), str(typeDef)))
 
     def _validate_uniqueItems(self, isUnique, instance, schema):
         """Validate that a unique items constraint holds for the instance.
