@@ -261,6 +261,22 @@ class Validator(object):
                     if i not in instance:
                         yield ValidationError("{:s} is a missing dependency of {:s}.".format(i, prop))
 
+    def _validate_enum(self, enum, instance, schema):
+        """Validate that an enumeration constraint holds for the instance.
+
+        :param enum:        The items that the instance is permitted to be.
+        :type enum:         array
+        :param instance:    The schema instance being validated.
+        :type instance:     str
+        :param schema:      The schema the instance is being validated against.
+        :type schema:       dict
+
+        """
+
+        # Validate the number of items.
+        if self._is_type(enum, "array") and (not instance in enum):
+            yield ValidationError("{:s} is not onw of the permissible values {:s}.".format(str(instance), str(enum)))
+
     def _validate_items(self, items, instance, schema):
         """Validate an instance of an items definition against the schema it should match.
 
