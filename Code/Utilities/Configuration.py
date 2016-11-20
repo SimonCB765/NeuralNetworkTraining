@@ -12,9 +12,6 @@ import jsonschema
 
 class Configuration(object):
 
-    # Default variables.
-    isLogging = True
-
     def __init__(self, **kwargs):
         """Initialise a Configuration object.
 

@@ -2,18 +2,22 @@
 
 # Python imports.
 import argparse
+import logging
 import os
 import shutil
 import sys
 
 # User imports.
 if __package__ != "Vector":
-    # The sharding has been executed from the command line not from being imported into another module.
+    # The sharding has been executed from the command line not by being imported.
     # Therefore, we need to add the top level Code directory in order to use absolute imports.
     currentDir = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory containing this file.
     codeDir = os.path.abspath(os.path.join(currentDir, os.pardir, os.pardir))
     sys.path.append(codeDir)
 from Utilities import Configuration
+
+# 3rd party imports.
+import jsonschema
 
 
 def main(fileExamples, dirOutput, config, fileTargets=None):
@@ -67,27 +71,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
     dirCurrent = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory containing this file.
     dirTop = os.path.abspath(os.path.join(dirCurrent, os.pardir, os.pardir, os.pardir))
-    fileDefaultConfig = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "DataProcessing", "Vector.json"))
-    fileConfigSchema = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "DataProcessing", "Schema.json"))
-    errorsFound = []  # Container for any error messages generated during the validation.
-
-    # Set default parameter values.
-    config = Configuration.Configuration()
-    config.set_from_json(fileDefaultConfig, fileConfigSchema)
-
-    # Validate the input example file.
-    fileDataset = args.input
-    if not os.path.isfile(fileDataset):
-        errorsFound.append("The location containing the input examples does not exist.")
-
-    # Validate the file of targets.
-    if args.target:
-        if not os.path.isfile(args.target):
-            errorsFound.append("The supplied location of the file of example targets is not a file.")
-
-    # Validate the output directory.
     dirOutput = os.path.abspath(os.path.join(dirTop, "ShardedData"))
     dirOutput = args.output if args.output else dirOutput
+    fileDefaultConfig = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Config.json"))
+    fileConfigSchema = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Schema.json"))
+    isErrors = False  # Whether any errors were found.
+
+    # Create the output directory.
     overwrite = args.overwrite
     if overwrite:
         try:
@@ -95,33 +85,85 @@ if __name__ == "__main__":
         except FileNotFoundError:
             # Can't remove the directory as it doesn't exist.
             pass
-        except Exception as e:
-            # Can't remove the directory for another reason.
-            errorsFound.append("Could not overwrite the output directory location - {0:s}".format(str(e)))
-    elif os.path.exists(dirOutput):
-        errorsFound.append("The output directory location already exists and overwriting is not enabled.")
+        os.makedirs(dirOutput)  # Attempt to make the output directory.
+    else:
+        try:
+            os.makedirs(dirOutput)  # Attempt to make the output directory.
+        except FileExistsError as e:
+            # Directory already exists so can't continue.
+            print("\nCan't continue as the output directory location already exists and overwriting is not enabled.\n")
+            sys.exit()
 
-    # Display errors if any were found.
-    if errorsFound:
-        print("\n\nThe following errors were encountered while parsing the input arguments:\n")
-        print('\n'.join(errorsFound))
-        sys.exit()
+    # Create the logger.
+    logger = logging.getLogger("ShardData")
+    logger.setLevel(logging.DEBUG)
+
+    # Create the logger file handler.
+    fileLog = os.path.join(dirOutput, "ShardData.log")
+    logFileHandler = logging.FileHandler(fileLog)
+    logFileHandler.setLevel(logging.DEBUG)
+
+    # Create a console handler for higher level logging.
+    logConsoleHandler = logging.StreamHandler()
+    logConsoleHandler.setLevel(logging.CRITICAL)
+
+    # Create formatter and add it to the handlers.
+    formatter = logging.Formatter("%(name)s\t%(levelname)s\t%(message)s")
+    logFileHandler.setFormatter(formatter)
+    logConsoleHandler.setFormatter(formatter)
+
+    # Add the handlers to the logger.
+    logger.addHandler(logFileHandler)
+    logger.addHandler(logConsoleHandler)
+
+    # Validate the input example file.
+    fileDataset = args.input
+    if not os.path.isfile(fileDataset):
+        logger.error("The location containing the input examples does not exist.")
+        isErrors = True
+
+    # Validate the file of targets.
+    if args.target:
+        if not os.path.isfile(args.target):
+            logger.error("The supplied location of the file of example targets is not a file.")
+            isErrors = True
+
+    # Set default parameter values.
+    config = Configuration.Configuration()
+    try:
+        config.set_from_json(fileDefaultConfig, fileConfigSchema)
+    except jsonschema.SchemaError as e:
+        logger.exception("The configuration schema is not a valid JSON schema. Please correct any changes made to the "
+                         "schema or download the original schema and save it at {:s}".format(fileConfigSchema))
+        isErrors = True
+    except jsonschema.ValidationError as e:
+        logger.exception(
+            "The default configuration file is not valid against the schema. Please correct any changes made to the "
+            "configuration file or download the original file and save it at {:s}".format(fileDefaultConfig)
+        )
+        isErrors = True
 
     # Validate and set any user supplied configuration parameters.
     if args.config:
         if not os.path.isfile(args.config):
-            print("\n\nThe following errors were encountered while parsing the input arguments:\n")
-            print("The supplied location of the configuration file is not a file.")
-            sys.exit()
+            logger.error("The supplied location of the configuration file is not a file.")
+            isErrors = True
         else:
-            config.set_from_json(args.config, fileConfigSchema)
+            try:
+                config.set_from_json(args.config, fileConfigSchema)
+            except jsonschema.SchemaError as e:
+                logger.exception(
+                    "The configuration schema is not a valid JSON schema. Please correct any changes made to the "
+                    "schema or download the original schema and save it at {:s}".format(fileConfigSchema)
+                )
+                isErrors = True
+            except jsonschema.ValidationError as e:
+                logger.exception("The user provided configuration file is not valid against the schema.")
+                isErrors = True
 
-    # Only create the output directory if there were no errors encountered.
-    try:
-        os.makedirs(dirOutput, exist_ok=True)  # Attempt to make the output directory. Don't care if it already exists.
-    except Exception as e:
-        print("\n\nThe following errors were encountered while parsing the input arguments:\n")
-        print("The output directory could not be created - {0:s}".format(str(e)))
+    # Display errors if any were found.
+    if isErrors:
+        print("\nErrors were encountered while validating the input arguments. Please see the log file for details.\n")
         sys.exit()
 
     # ================= #
