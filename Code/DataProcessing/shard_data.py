@@ -53,6 +53,11 @@ if __name__ == "__main__":
                         help="The location of the file containing the configuration parameters to use. "
                              "Default: a file called Sequence.json in the ConfigurationFiles/DataProcessing directory.",
                         type=str)
+    parser.add_argument("-e", "--encode",
+                        default=None,
+                        help="The encoding to convert strings in the JSON configuration file to. Default: no "
+                             "conversion performed.",
+                        type=str)
     parser.add_argument("-o", "--output",
                         help="The location of the directory to save the sharded output to. Default: a top level "
                              "directory called ShardedData.",
@@ -131,7 +136,10 @@ if __name__ == "__main__":
     # Set default parameter values.
     config = Configuration.Configuration()
     try:
-        config.set_from_json(fileDefaultConfig, fileConfigSchema)
+        if args.encode:
+            config.set_from_json(fileDefaultConfig, fileConfigSchema, args.encode)
+        else:
+            config.set_from_json(fileDefaultConfig, fileConfigSchema)
     except jsonschema.SchemaError as e:
         logger.exception("The configuration schema is not a valid JSON schema. Please correct any changes made to the "
                          "schema or download the original schema and save it at {:s}".format(fileConfigSchema))
@@ -142,6 +150,9 @@ if __name__ == "__main__":
             "configuration file or download the original file and save it at {:s}".format(fileDefaultConfig)
         )
         isErrors = True
+    except LookupError as e:
+        logger.exception("Requested encoding {:s} to convert JSON strings to wasn't found.".format(args.encode))
+        isErrors = True
 
     # Validate and set any user supplied configuration parameters.
     if args.config:
@@ -150,7 +161,10 @@ if __name__ == "__main__":
             isErrors = True
         else:
             try:
-                config.set_from_json(args.config, fileConfigSchema)
+                if args.encode:
+                    config.set_from_json(args.config, fileConfigSchema, args.encode)
+                else:
+                    config.set_from_json(args.config, fileConfigSchema)
             except jsonschema.SchemaError as e:
                 logger.exception(
                     "The configuration schema is not a valid JSON schema. Please correct any changes made to the "
@@ -159,6 +173,9 @@ if __name__ == "__main__":
                 isErrors = True
             except jsonschema.ValidationError as e:
                 logger.exception("The user provided configuration file is not valid against the schema.")
+                isErrors = True
+            except LookupError as e:
+                logger.exception("Requested encoding {:s} to convert JSON strings to wasn't found.".format(args.encode))
                 isErrors = True
 
     # Display errors if any were found.
