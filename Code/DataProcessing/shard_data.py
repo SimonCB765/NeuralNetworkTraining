@@ -8,11 +8,11 @@ import shutil
 import sys
 
 # User imports.
-if __package__ != "Vector":
+if __package__ != "DataProcessing":
     # The sharding has been executed from the command line not by being imported.
     # Therefore, we need to add the top level Code directory in order to use absolute imports.
     currentDir = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory containing this file.
-    codeDir = os.path.abspath(os.path.join(currentDir, os.pardir, os.pardir))
+    codeDir = os.path.abspath(os.path.join(currentDir, os.pardir))
     sys.path.append(codeDir)
 from Utilities import Configuration
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     # ============================ #
     args = parser.parse_args()
     dirCurrent = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory containing this file.
-    dirTop = os.path.abspath(os.path.join(dirCurrent, os.pardir, os.pardir, os.pardir))
+    dirTop = os.path.abspath(os.path.join(dirCurrent, os.pardir, os.pardir))
     dirOutput = os.path.abspath(os.path.join(dirTop, "ShardedData"))
     dirOutput = args.output if args.output else dirOutput
     fileDefaultConfig = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Config.json"))
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
 
     # Create the logger file handler.
-    fileLog = os.path.join(dirOutput, "ShardData.log")
+    fileLog = os.path.join(dirOutput, "Error.log")
     logFileHandler = logging.FileHandler(fileLog)
     logFileHandler.setLevel(logging.DEBUG)
 
