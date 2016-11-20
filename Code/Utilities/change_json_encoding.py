@@ -31,10 +31,10 @@ def main(jsonObject, encoding="utf-8"):
 
     if isinstance(jsonObject, dict):
         # If the current part of the JSON object is a dictionary, then encode all its keys and values if needed.
-        return dict([(main(key), main(value)) for key, value in iteritems(jsonObject)])
+        return dict([(main(key, encoding), main(value, encoding)) for key, value in iteritems(jsonObject)])
     elif isinstance(jsonObject, list):
         # If the current part of the JSON object is a list, then encode all its elements if needed.
-        return [main(i) for i in jsonObject]
+        return [main(i, encoding) for i in jsonObject]
     elif isinstance(jsonObject, unicode):
         # If you've reached a unicode string then encode.
         return jsonObject.encode(encoding)
