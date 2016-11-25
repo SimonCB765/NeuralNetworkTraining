@@ -1,2 +1,168 @@
 {
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "NeuralNetworkConfiguration",
+  "description": "A configuration file used in training neural networks.",
+  "type": "object",
+
+  "definitions": {
+    "VariableIndexer": {
+      "description": "A collection of variable indices to use.",
+      "type": "object",
+
+      "NumericIndices": {
+        "description": "Numerical indexing of variables (Python range formatting allowed).",
+        "items": {
+          "anyOf": [
+            {"type": "string"},
+            {"type": "number"}
+          ]
+        },
+        "type": "array"
+      },
+      "VariableNames": {
+        "description": "Indexing of variables by their name.",
+        "items": {"type": "string"},
+        "type": "array"
+      }
+    }
+  },
+
+  "properties":
+  {
+    "DataFormat": {
+      "default": "Vector",
+      "description": "The format that the data should take.",
+      "enum": ["Sequence", "Vector"],
+      "type": "string"
+    },
+    "ProcessData": {
+      "description": "Configuration parameters to prepare a dataset for training a neural network.",
+      "type": "object",
+
+      "DataFormat": {
+        "description": "The format of the dataset being processed.",
+        "type": "object",
+
+        "VariablesToIgnore": {
+          "description": "The numerical indices or the names of the variables to ignore.",
+          "type": "object",
+
+          "Variables": {"$ref": "#/definitions/VariableIndexer"}
+        },
+        "ExampleIDVariable": {
+          "default": 0,
+          "description": "The numeric index or name of the variable that is used to index the examples.",
+          "type": {
+          "oneOf": [
+              {"type": "integer"},
+              {"type": "string"}
+            ]
+          }
+        },
+        "HeaderPresent": {
+          "default": false,
+          "description": "Whether the first row of the dataset is a header.",
+          "type": "string"
+        },
+        "Separator": {
+          "default": "\t",
+          "description": "The separator between variables in the input file.",
+          "type": "string"
+        }
+      },
+      "DataSplit": {
+        "description": "How to split the dataset between train, test and validation sets.",
+        "type": "object",
+
+        "TestFraction": {
+          "default": 0.7,
+          "description": "The fraction of the dataset to split off into a test set.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "TrainFraction": {
+          "default": 0.15,
+          "description": "The fraction of the dataset to split off into a training set.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "ValidationFraction": {
+          "default": 0.15,
+          "description": "The fraction of the dataset to split off into a validation set.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "Normalise": {
+        "description": "Configuration parameters for normalising a dataset.",
+        "type": "object",
+
+        "Categorical": {
+          "description": "Categorical variables to convert to one-hot encoding.",
+          "type": "object",
+
+          "OneOfC": {
+            "description": "Variables to convert to a one-of-C encoding, where C is the number of categories.",
+            "type": "object",
+
+            "Variables": {"$ref": "#/definitions/VariableIndexer"}
+          },
+          "OneOfC-1": {
+            "description": "Variables to convert to a one-of-(C-1) encoding, where C is the number of categories.",
+            "type": "object",
+
+            "Variables": {"$ref": "#/definitions/VariableIndexer"}
+          }
+        },
+        "Numeric": {
+          "description": "Numeric variables to normalise.",
+          "type": "object",
+
+          "Decorrelate": {
+            "description": "Variables to normalise by decorrelating.",
+            "type": "object",
+
+            "Variables": {"$ref": "#/definitions/VariableIndexer"}
+          },
+          "MinMaxScale": {
+            "description": "Variables to normalise by min/max scaling.",
+            "type": "object",
+
+            "Variables": {"$ref": "#/definitions/VariableIndexer"}},
+          "Normalise": {
+            "description": "Variables to normalise by Gaussian standardisation.",
+            "type": "object",
+
+            "Variables": {"$ref": "#/definitions/VariableIndexer"}
+          },
+          "Whiten": {
+            "description": "Variables to normalise by whitening.",
+            "type": "object",
+
+            "Variables": {"$ref": "#/definitions/VariableIndexer"}
+          }
+        }
+      },
+      "Shard": {
+        "description": "Configuration parameters for splitting a dataset into shards.",
+        "type": "object",
+
+        "ExamplesPerShard": {
+          "default": 1000,
+          "description": "The number of examples to save in each shard.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "ShardsToGenerate": {
+          "default": 100,
+          "description": "The number of dataset shards to generate.",
+          "minimum": 1,
+          "type": "integer"
+        }
+      }
+    }
+  }
 }

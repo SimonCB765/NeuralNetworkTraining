@@ -1,17 +1,67 @@
 {
-  "examplesPerShard": 100,
-  "exampleTestFraction": 0.15,
-  "exampleValidateFraction": 0.15,
-  "Input": {
-    "columnSeparator": "\t",
-    "columnsToIgnore": [],
-    "exampleIDColumn": false,
-    "headerPresent": false
-  },
-  "Output":{
-    "columnSeparator": "\t",
-    "columnsToIgnore": [],
-    "exampleIDColumn": false,
-    "headerPresent": false
+  "DataFormat": "Vector",
+  "ProcessData": {
+    "DataFormat": {
+      "VariablesToIgnore": {
+        "Variables": {
+          "NumericIndices": [1, 2, 3, 4, "10:"],
+          "VariableNames": ["name1", "name2"]
+        }
+      },
+      "ExampleIDVariable": 0,
+      "HeaderPresent": false,
+      "Separator": "\t"
+    },
+    "DataSplit": {
+      "TestFraction": 0.7,
+      "TrainFraction": 0.15,
+      "ValidationFraction": 0.15
+    },
+    "Normalise": {
+      "Categorical": {
+        "OneOfC": {
+          "Variables": {
+            "NumericIndices": [1, 2, 3, 4, "10:"],
+            "VariableNames": ["name1", "name2"]
+            }
+        },
+        "OneOfC-1": {
+          "Variables": {
+            "NumericIndices": [1, 2, 3, 4, "10:"],
+            "VariableNames": ["name1", "name2"]
+          }
+        }
+      },
+      "Numeric": {
+        "Decorrelate": {
+          "Variables": {
+            "NumericIndices": [1, 2, 3, 4, "10:"],
+            "VariableNames": ["name1", "name2"]
+          }
+        },
+        "MinMaxScale": {
+          "Variables": {
+            "NumericIndices": [1, 2, 3, 4, "10:"],
+            "VariableNames": ["name1", "name2"]
+          }
+        },
+        "Normalise": {
+          "Variables": {
+            "NumericIndices": [1, 2, 3, 4, "10:"],
+            "VariableNames": ["name1", "name2"]
+          }
+        },
+        "Whiten": {
+          "Variables": {
+            "NumericIndices": [1, 2, 3, 4, "10:"],
+            "VariableNames": ["name1", "name2"]
+          }
+        }
+      }
+    },
+    "Shard": {
+      "ExamplesPerShard": 100,
+      "ShardsToGenerate": 10
+    }
   }
 }

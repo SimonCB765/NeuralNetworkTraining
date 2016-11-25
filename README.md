@@ -27,13 +27,47 @@ See the following links for information on JSON schema:
 
 example, target, output and overwrite are not in configuration file but instead are command line parameters
 
-should be a dictionary for target data and one for training data (target data in separate file), for the sequences the output and input are assumed to be in the same order (i.e. input in row 1 has its output as row 1 in target file)
+for the sequences the output and input are assumed to be in the same order (i.e. input in row 1 has its output as row 1 in target file)
 
-number examples per shard
-separator for the data columns
+Anything in the configuration file will be carried out, so if you don't want to prepare the data, but do want to train, then don't have any data preparation parameters.
 
-want fraction of examples to have as test and fraction to have as validation
-just give fraction for test and validation with the remaining being in the training shards
+Numeric indexing is 0-based
+
+Training fraction takes precendence, then test then validation. So if fractions are:
+
+- train - T_f
+- test - E_f
+- validation - V_f
+
+and dataset contains N examples, then the dataset sizes will be:
+
+- train = T_n = T * N
+- test = E_n = min((N - T_n) * E_f, N * E_f)
+- validation = V_n = min((N - T_n - E_n) * V_f, N * V_f)
+
+There can be examples that are left out of all three datasets, e.g. if T_f = 0.5, E_f = 0.2 and V_f = 0.2.
+
+ExamplesPerShard takes precedence over ShardsToGenerate, and therefore ShardsToGenerate is ignored if ExamplesPerShard is present
+
+- Normalising + how to do it when you've got a dataset too large to fit in memory
+    - http://cs231n.github.io/neural-networks-2/
+	- https://visualstudiomagazine.com/articles/2014/01/01/how-to-standardize-data-for-neural-networks.aspx
+	- LeCun efficient backprop (http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf)
+	- http://www.faqs.org/faqs/ai-faq/neural-nets/part2/
+	- Basically, standardise to avoid saturation with big values and also to get the points clustered around the origin as if you initialise biases (and weights) with small random values all possible hyperplanes are likely to be very close to the origin, so you don't miss the data cloud if you standardise
+	    - Similar reason for making binary data -1/+1 not 0/+1
+	- Numeric independent (done only on training portion and then applied to test and validation)
+		- min/max scaling
+		- normalising
+		- decorrelating
+		- whitening
+    - Categorical independent and dependent (done on entire dataset)
+        - one hot coding with -1/+1 for each category
+        - one hot coding with -1/+1 for each category -1 (so N-1 variable for N categories)
+    
+		
+
+DataFormat - stitch rows of the input file together for sequences, treat rows individually for Vector data
 
 - ColumnsToIgnore - list of the columns to not include in the data (i.e. stick the ID column in this to not keep it as data), strings will be interpreted as column names and integers as column indices (0 based), names not matchig column headings and indices too large are just ignored (with a warning output)
 - HeaderPresent - true or false, header is taken to be first line in file with one column name per data column
