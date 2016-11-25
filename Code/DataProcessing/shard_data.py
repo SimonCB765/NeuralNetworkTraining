@@ -51,7 +51,7 @@ if __name__ == "__main__":
     # Optional arguments.
     parser.add_argument("-c", "--config",
                         help="The location of the file containing the configuration parameters to use. "
-                             "Default: a file called Sequence.json in the ConfigurationFiles/DataProcessing directory.",
+                             "Default: a file called Config.json in the ConfigurationFiles directory.",
                         type=str)
     parser.add_argument("-e", "--encode",
                         default=None,
