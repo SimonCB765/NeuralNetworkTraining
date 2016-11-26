@@ -33,12 +33,6 @@
         }
       },
       "Numeric": {
-        "Decorrelate": {
-          "Variables": {
-            "NumericIndices": [1, 2, 3, 4, "10:"],
-            "VariableNames": ["name1", "name2"]
-          }
-        },
         "MinMaxScale": {
           "Variables": {
             "NumericIndices": [1, 2, 3, 4, "10:"],
@@ -46,12 +40,6 @@
           }
         },
         "Normalise": {
-          "Variables": {
-            "NumericIndices": [1, 2, 3, 4, "10:"],
-            "VariableNames": ["name1", "name2"]
-          }
-        },
-        "Whiten": {
           "Variables": {
             "NumericIndices": [1, 2, 3, 4, "10:"],
             "VariableNames": ["name1", "name2"]

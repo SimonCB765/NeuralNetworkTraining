@@ -121,12 +121,6 @@
           "description": "Numeric variables to normalise.",
           "type": "object",
 
-          "Decorrelate": {
-            "description": "Variables to normalise by decorrelating.",
-            "type": "object",
-
-            "Variables": {"$ref": "#/definitions/VariableIndexer"}
-          },
           "MinMaxScale": {
             "description": "Variables to normalise by min/max scaling.",
             "type": "object",
@@ -134,12 +128,6 @@
             "Variables": {"$ref": "#/definitions/VariableIndexer"}},
           "Normalise": {
             "description": "Variables to normalise by Gaussian standardisation.",
-            "type": "object",
-
-            "Variables": {"$ref": "#/definitions/VariableIndexer"}
-          },
-          "Whiten": {
-            "description": "Variables to normalise by whitening.",
             "type": "object",
 
             "Variables": {"$ref": "#/definitions/VariableIndexer"}
