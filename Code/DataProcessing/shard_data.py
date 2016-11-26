@@ -141,13 +141,15 @@ if __name__ == "__main__":
         else:
             config.set_from_json(fileDefaultConfig, fileConfigSchema)
     except jsonschema.SchemaError as e:
-        logger.exception("The configuration schema is not a valid JSON schema. Please correct any changes made to the "
-                         "schema or download the original schema and save it at {:s}".format(fileConfigSchema))
+        logger.error(
+            "{:s}. The configuration schema is not a valid JSON schema. Please correct any changes made to the "
+            "schema or download the original and save it at {:s}".format(e.message, fileConfigSchema)
+        )
         isErrors = True
     except jsonschema.ValidationError as e:
-        logger.exception(
-            "The default configuration file is not valid against the schema. Please correct any changes made to the "
-            "configuration file or download the original file and save it at {:s}".format(fileDefaultConfig)
+        logger.error(
+            "{:s}. The default configuration file is not valid against the schema. Please correct any changes made to "
+            "the file or download the original and save it at {:s}".format(e.message, fileDefaultConfig)
         )
         isErrors = True
     except LookupError as e:
@@ -166,13 +168,15 @@ if __name__ == "__main__":
                 else:
                     config.set_from_json(args.config, fileConfigSchema)
             except jsonschema.SchemaError as e:
-                logger.exception(
-                    "The configuration schema is not a valid JSON schema. Please correct any changes made to the "
-                    "schema or download the original schema and save it at {:s}".format(fileConfigSchema)
+                logger.error(
+                    "{:s}. The configuration schema is not a valid JSON schema. Please correct any changes made to the "
+                    "schema or download the original and save it at {:s}".format(e.message, fileConfigSchema)
                 )
                 isErrors = True
             except jsonschema.ValidationError as e:
-                logger.exception("The user provided configuration file is not valid against the schema.")
+                logger.error(
+                    "{:s}. The user provided configuration file is not valid against the schema.".format(e.message)
+                )
                 isErrors = True
             except LookupError as e:
                 logger.exception("Requested encoding {:s} to convert JSON strings to wasn't found.".format(args.encode))
