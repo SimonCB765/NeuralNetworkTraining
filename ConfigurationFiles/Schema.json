@@ -39,16 +39,10 @@
       "description": "Configuration parameters to prepare a dataset for training a neural network.",
       "type": "object",
 
-      "DataFormat": {
-        "description": "The format of the dataset being processed.",
+      "DataDescription": {
+        "description": "Parameters describing the format of the dataset being processed.",
         "type": "object",
 
-        "VariablesToIgnore": {
-          "description": "The numerical indices or the names of the variables to ignore.",
-          "type": "object",
-
-          "Variables": {"$ref": "#/definitions/VariableIndexer"}
-        },
         "ExampleIDVariable": {
           "default": 0,
           "description": "The numeric index or name of the variable that is used to index the examples.",
@@ -68,6 +62,12 @@
           "default": "\t",
           "description": "The separator between variables in the input file.",
           "type": "string"
+        },
+        "VariablesToIgnore": {
+          "description": "The numerical indices or the names of the variables to ignore.",
+          "type": "object",
+
+          "Variables": {"$ref": "#/definitions/VariableIndexer"}
         }
       },
       "DataSplit": {

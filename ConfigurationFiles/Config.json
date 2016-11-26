@@ -1,7 +1,7 @@
 {
   "DataFormat": "Vector",
   "ProcessData": {
-    "DataFormat": {
+    "DataDescription": {
       "VariablesToIgnore": {
         "Variables": {
           "NumericIndices": [1, 2, 3, 4, "10:"],
