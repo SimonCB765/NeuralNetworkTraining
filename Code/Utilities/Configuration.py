@@ -54,7 +54,7 @@ class Configuration(object):
             fid = open(config, 'r')
             config = json.load(fid)
             if newEncoding:
-                change_json_encoding.main(config, newEncoding)
+                config = change_json_encoding.main(config, newEncoding)
             fid.close()
 
         # Extract the schema information.
