@@ -8,7 +8,7 @@ import shutil
 import sys
 
 # User imports.
-if __package__ != "DataProcessing":
+if __package__ != "DataPreparation":
     # The sharding has been executed from the command line not by being imported.
     # Therefore, we need to add the top level Code directory in order to use absolute imports.
     currentDir = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory containing this file.
