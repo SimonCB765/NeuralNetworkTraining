@@ -29,8 +29,7 @@
 
   "required": ["DataFormat"],
 
-  "properties":
-  {
+  "properties": {
     "DataFormat": {
       "description": "The format that the data should take.",
       "required": ["Format", "Type"],
@@ -132,7 +131,8 @@
             "description": "Variables to normalise by min/max scaling.",
             "type": "object",
 
-            "Variables": {"$ref": "#/definitions/VariableIndexer"}},
+            "Variables": {"$ref": "#/definitions/VariableIndexer"}
+          },
           "Normalise": {
             "description": "Variables to normalise by Gaussian standardisation.",
             "type": "object",
