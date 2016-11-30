@@ -49,6 +49,23 @@ There can be examples that are left out of all three datasets, e.g. if T_f = 0.5
 
 ExamplesPerShard takes precedence over ShardsToGenerate, and therefore ShardsToGenerate is ignored if ExamplesPerShard is present
 
+Putting a reference directly into an object is possible, e.g.:
+    "Schema": {
+        "description": "Variables to convert to a one-of-(C-1) encoding, where C is the number of categories.",
+        "type": "object",
+        "$ref": "#/definitions/VariableIndexer"
+    }
+rather than:
+    "Schema": {
+        "description": "Variables to convert to a one-of-(C-1) encoding, where C is the number of categories.",
+        "type": "object",
+        "ReffedElement": {"$ref": "#/definitions/VariableIndexer"}
+    }
+This is not really recommended as you will potentially cause key clashes that are resolved by overwriting key-value pairs in the
+original element with the referenced key-value pair
+
+Regular expression variales names are intended to be matched from the beginning of the variable's name.
+
 - Normalising + how to do it when you've got a dataset too large to fit in memory
     - http://cs231n.github.io/neural-networks-2/
 	- https://visualstudiomagazine.com/articles/2014/01/01/how-to-standardize-data-for-neural-networks.aspx
