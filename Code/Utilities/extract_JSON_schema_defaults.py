@@ -37,13 +37,15 @@ def main(schema):
         - Validation of the default values is not performed. It is up to the schema writer to ensure they are legal.
         - References are all treated as references to top level elements of the schema outside the "properties" element.
             Traditionally the referenced elements would be held in a top level "definitions" object.
-        - If a $ref keyword appears in an object, then the entire object is overwritten with the referenced element.
-            For example, both the object
+        - If a $ref keyword appears in an object, then the referenced element is imported into the space of the object.
+            For example, if there is a referenced object
+                {"description": "...", "type": "object", "ReffedKey1": ..., "ReffedKey2": ...}
+            at path "#/path/to/ref", then the object
                 {"$ref": "#/path/to/ref"}
-            and
-                {"$ref": "#/path/to/ref", "otherKey": "otherVal", "extraObject": {...}}
-            will be replaced by the object referenced by "#/path/to/ref". The "otherKey" and "extraObject" keys/values
-            will be ignored.
+            will get converted to
+                {"description": "...", "type": "object", "ReffedKey1": ..., "ReffedKey2": ...}
+            Any clashes in key names will be decided by overwriting the original value associated with the key with the
+            value from the referenced object.
         - Defaults specified in a sub-schema will override those specified higher up the schema hierarchy. For example,
             {
                 "default": {"key": 0},
@@ -104,16 +106,22 @@ def main(schema):
                 #       "description": "Some description...",
                 #       "type": "object",
                 #       "EleWithRef": {"$ref": "#/definitions/DefLocation"},
+                #       "$ref": "#/definitions/DefLocation"
                 #   }
                 # In this case, rather than going through each element in the EleWithRef object, we directly
                 # replace the {"$ref": "#/definitions/DefLocation"} object with the one located at
-                # #/definitions/DefLocation and go through that instead.
+                # #/definitions/DefLocation and go through that instead. We also directly incorporate the element at
+                # #/definitions/DefLocation into the CurrentSchema element due to the
+                # "$ref": "#/definitions/DefLocation" element.
                 defPath = schemaProps[i].get("$ref").split("/")[1:]  # Ignore the '#' at the beginning of the ref path.
-                subschema["properties"] = reduce(lambda d, key: d.get(key) if d else None, defPath, schema)
+                del schemaProps[i]["$ref"]
+                referencedProps = reduce(lambda d, key: d.get(key) if d else None, defPath, schema)
+                schemaProps[i].update(referencedProps)
             except AttributeError:
-                # The element does not contain a reference (and may not even be an object), so we just look directly
-                # at the element.
-                subschema["properties"] = schemaProps[i]
+                # The element does not contain a reference (and may not even be an object), so there is no need to
+                # manipulate the element.
+                pass
+            subschema["properties"] = schemaProps[i]
             subschemaDefaults, defaultExtracted = main(subschema)
             if defaultExtracted:
                 defaults[i] = subschemaDefaults

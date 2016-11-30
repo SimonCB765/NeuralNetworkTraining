@@ -3,10 +3,8 @@
     "Format": "Vector",
     "Type": "float",
     "VariablesToIgnore": {
-      "Variables": {
-        "NumericIndices": [1, 2, 3, 4, "10:"],
-        "VariableNames": ["name1", "name2"]
-      }
+      "NumericIndices": [1, 2, 3, 4, "10:"],
+      "VariableNames": ["name1", "name2"]
     },
     "ExampleIDVariable": 0,
     "HeaderPresent": false,
@@ -21,30 +19,22 @@
     "Normalise": {
       "Categorical": {
         "OneOfC": {
-          "Variables": {
-            "NumericIndices": [1, 2, 3, 4, "10:"],
-            "VariableNames": ["name1", "name2"]
-            }
+          "NumericIndices": [1, 2, 3, 4, "10:"],
+          "VariableNames": ["name1", "name2"]
         },
         "OneOfC-1": {
-          "Variables": {
-            "NumericIndices": [1, 2, 3, 4, "10:"],
-            "VariableNames": ["name1", "name2"]
-          }
+          "NumericIndices": [1, 2, 3, 4, "10:"],
+          "VariableNames": ["name1", "name2"]
         }
       },
       "Numeric": {
         "MinMaxScale": {
-          "Variables": {
-            "NumericIndices": [1, 2, 3, 4, "10:"],
-            "VariableNames": ["name1", "name2"]
-          }
+          "NumericIndices": [1, 2, 3, 4, "10:"],
+          "VariableNames": ["name1", "name2"]
         },
         "Normalise": {
-          "Variables": {
-            "NumericIndices": [1, 2, 3, 4, "10:"],
-            "VariableNames": ["name1", "name2"]
-          }
+          "NumericIndices": [1, 2, 3, 4, "10:"],
+          "VariableNames": ["name1", "name2"]
         }
       }
     },
