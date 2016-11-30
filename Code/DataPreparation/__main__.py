@@ -14,7 +14,6 @@ if __package__ != "DataPreparation":
     currentDir = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory containing this file.
     codeDir = os.path.abspath(os.path.join(currentDir, os.pardir))
     sys.path.append(codeDir)
-from DataPreparation import normalise
 from DataPreparation import shard_data
 from Utilities import Configuration
 
@@ -175,3 +174,11 @@ if args.config:
 if isErrors:
     print("\nErrors were encountered while validating the input arguments. Please see the log file for details.\n")
     sys.exit()
+
+# ================= #
+# Shard the Dataset #
+# ================= #
+if args.target:
+    shard_data.main(fileDataset, dirOutput, config, args.target)
+else:
+    shard_data.main(fileDataset, dirOutput, config)
