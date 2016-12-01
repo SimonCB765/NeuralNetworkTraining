@@ -1,0 +1,29 @@
+disable_existing_loggers: false
+formatters:
+    default:
+        format: "%(name)s\t%(levelname)s\t%(message)s"
+handlers:
+    console:
+        class: logging.StreamHandler
+        formatter: default
+        level: CRITICAL
+    DataPreparation:
+        class: logging.FileHandler
+        filename: placeholder
+        formatter: default
+        level: DEBUG
+    Utilities:
+        class: logging.FileHandler
+        filename: placeholder
+        formatter: default
+        level: DEBUG
+incremental: false
+loggers:
+    DataPreparation:
+        handlers: [console, DataPreparation]
+        level: DEBUG
+    Utilities:
+        handlers: [console, Utilities]
+        level: DEBUG
+root:
+version: 1

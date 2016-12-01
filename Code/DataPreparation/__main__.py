@@ -2,10 +2,11 @@
 
 # Python imports.
 import argparse
-import logging
+import logging.config
 import os
 import shutil
 import sys
+import yaml
 
 # User imports.
 if __package__ != "DataPreparation":
@@ -81,27 +82,14 @@ else:
         print("\nCan't continue as the output directory location already exists and overwriting is not enabled.\n")
         sys.exit()
 
-# Create the logger.
+# Create the logger. In order to do this we need to overwrite the value in the configuration information that records
+# the location to write the logs for this module to.
+fileLoggerConfig = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Loggers.yaml"))
+fileLogOutput = os.path.join(dirOutput, "DataPreparation.log")
+logConfigInfo = yaml.load(open(fileLoggerConfig, 'r'))
+logConfigInfo["handlers"]["DataPreparation"]["filename"] = fileLogOutput
+logging.config.dictConfig(logConfigInfo)
 logger = logging.getLogger("DataPreparation")
-logger.setLevel(logging.DEBUG)
-
-# Create the logger file handler.
-fileLog = os.path.join(dirOutput, "DataPreparation.log")
-logFileHandler = logging.FileHandler(fileLog)
-logFileHandler.setLevel(logging.DEBUG)
-
-# Create a console handler for higher level logging.
-logConsoleHandler = logging.StreamHandler()
-logConsoleHandler.setLevel(logging.CRITICAL)
-
-# Create formatter and add it to the handlers.
-formatter = logging.Formatter("%(name)s\t%(levelname)s\t%(message)s")
-logFileHandler.setFormatter(formatter)
-logConsoleHandler.setFormatter(formatter)
-
-# Add the handlers to the logger.
-logger.addHandler(logFileHandler)
-logger.addHandler(logConsoleHandler)
 
 # Validate the input example file.
 fileDataset = args.input
