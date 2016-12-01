@@ -1,4 +1,4 @@
-"""Code to process a dataset into a format usable by Tensorflow."""
+"""Code to run the entire neural network training process."""
 
 # Python imports.
 import argparse
