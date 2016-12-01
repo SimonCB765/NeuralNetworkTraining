@@ -82,11 +82,11 @@ else:
         sys.exit()
 
 # Create the logger.
-logger = logging.getLogger("PrepareData")
+logger = logging.getLogger("DataPreparation")
 logger.setLevel(logging.DEBUG)
 
 # Create the logger file handler.
-fileLog = os.path.join(dirOutput, "Error.log")
+fileLog = os.path.join(dirOutput, "DataPreparation.log")
 logFileHandler = logging.FileHandler(fileLog)
 logFileHandler.setLevel(logging.DEBUG)
 
@@ -178,6 +178,7 @@ if isErrors:
 # ================= #
 # Shard the Dataset #
 # ================= #
+logger.info("Now starting file sharding.")
 if args.target:
     shard_data.main(fileDataset, dirOutput, config, args.target)
 else:
