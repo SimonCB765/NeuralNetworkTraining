@@ -7,12 +7,7 @@ handlers:
         class: logging.StreamHandler
         formatter: default
         level: CRITICAL
-    DataPreparation:
-        class: logging.FileHandler
-        filename: placeholder
-        formatter: default
-        level: DEBUG
-    Utilities:
+    file:
         class: logging.FileHandler
         filename: placeholder
         formatter: default
@@ -20,10 +15,10 @@ handlers:
 incremental: false
 loggers:
     DataPreparation:
-        handlers: [console, DataPreparation]
+        handlers: [console, file]
         level: DEBUG
     Utilities:
-        handlers: [console, Utilities]
+        handlers: [console, file]
         level: DEBUG
 root:
 version: 1

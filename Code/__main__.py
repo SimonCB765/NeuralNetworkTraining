@@ -9,12 +9,6 @@ import sys
 import yaml
 
 # User imports.
-if __package__ != "DataPreparation":
-    # The code was not called from within the Code directory using 'python -m DataPreparation'.
-    # Therefore, we need to add the top level Code directory in order to use absolute imports.
-    currentDir = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory containing this file.
-    codeDir = os.path.abspath(os.path.join(currentDir, os.pardir))
-    sys.path.append(codeDir)
 from DataPreparation import shard_data
 from Utilities import Configuration
 
@@ -58,9 +52,10 @@ parser.add_argument("-w", "--overwrite",
 # ============================ #
 args = parser.parse_args()
 dirCurrent = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory containing this file.
-dirTop = os.path.abspath(os.path.join(dirCurrent, os.pardir, os.pardir))
-dirOutput = os.path.abspath(os.path.join(dirTop, "PreparedData"))
+dirTop = os.path.abspath(os.path.join(dirCurrent, os.pardir))
+dirOutput = os.path.abspath(os.path.join(dirTop, "Output"))
 dirOutput = args.output if args.output else dirOutput
+dirOutputDataPrep = os.path.abspath(os.path.join(dirOutput, "DataPreparation"))
 fileDefaultConfig = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Config.json"))
 fileConfigSchema = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Schema.json"))
 isErrors = False  # Whether any errors were found.
@@ -74,20 +69,22 @@ if overwrite:
         # Can't remove the directory as it doesn't exist.
         pass
     os.makedirs(dirOutput)  # Attempt to make the output directory.
+    os.makedirs(dirOutputDataPrep)  # Attempt to make the data preparation output directory.
 else:
     try:
         os.makedirs(dirOutput)  # Attempt to make the output directory.
+        os.makedirs(dirOutputDataPrep)  # Attempt to make the data preparation output directory.
     except FileExistsError as e:
         # Directory already exists so can't continue.
         print("\nCan't continue as the output directory location already exists and overwriting is not enabled.\n")
         sys.exit()
 
 # Create the logger. In order to do this we need to overwrite the value in the configuration information that records
-# the location to write the logs for this module to.
+# the location of the file that the logs are written to.
 fileLoggerConfig = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Loggers.yaml"))
-fileLogOutput = os.path.join(dirOutput, "DataPreparation.log")
+fileLogOutput = os.path.join(dirOutput, "Logs.log")
 logConfigInfo = yaml.load(open(fileLoggerConfig, 'r'))
-logConfigInfo["handlers"]["DataPreparation"]["filename"] = fileLogOutput
+logConfigInfo["handlers"]["file"]["filename"] = fileLogOutput
 logging.config.dictConfig(logConfigInfo)
 logger = logging.getLogger("DataPreparation")
 
@@ -168,6 +165,6 @@ if isErrors:
 # ================= #
 logger.info("Now starting file sharding.")
 if args.target:
-    shard_data.main(fileDataset, dirOutput, config, args.target)
+    shard_data.main(fileDataset, dirOutputDataPrep, config, args.target)
 else:
-    shard_data.main(fileDataset, dirOutput, config)
+    shard_data.main(fileDataset, dirOutputDataPrep, config)
