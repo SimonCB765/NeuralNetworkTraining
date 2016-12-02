@@ -1,17 +1,14 @@
 """Code to shard a large dataset file into multiple small ones."""
 
 # Python imports.
-import os
-import sys
+import logging
 
 # User imports.
-if __package__ != "DataPreparation":
-    # The sharding has been executed from the command line not by being imported.
-    # Therefore, we need to add the top level Code directory in order to use absolute imports.
-    currentDir = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory containing this file.
-    codeDir = os.path.abspath(os.path.join(currentDir, os.pardir))
-    sys.path.append(codeDir)
-from Utilities import Configuration
+from . import normalise
+from Utilities import variable_indices_from_config
+
+# Globals.
+LOGGER = logging.getLogger(__name__)
 
 
 def main(fileExamples, dirOutput, config, fileTargets=None):
@@ -28,4 +25,26 @@ def main(fileExamples, dirOutput, config, fileTargets=None):
 
     """
 
-    pass
+    # If there is a header, then extract it and determine the index of each column.
+    # Also determine the number of variables in the dataset.
+    header = {}
+    firstLine = open(fileExamples, 'r').readline().split(config.DataFormat["Separator"])
+    numVariables = len(firstLine)
+    if config.DataFormat["HeaderPresent"]:
+        header = {j: i for i, j in enumerate(firstLine)}
+
+    # Determine the variables to ignore.
+    LOGGER.info("Now extracting the indices of the variables to ignore.")
+    varsToIgnore = variable_indices_from_config.main(
+        config.DataFormat["VariablesToIgnore"]["NumericIndices"],
+        config.DataFormat["VariablesToIgnore"]["VariableNames"], numVariables, header
+    )
+    if config.DataFormat.get("ExampleIDVariable", None) is not None:
+        # If there is an ID for each example, then that 'variable' should be ignored as well. As the column that the
+        # ID is in could be 0 (a Falsey value) we test for None.
+        varsToIgnore.add(config.DataFormat["ExampleIDVariable"])
+
+    # ================== #
+    # Normalise the Data #
+    # ================== #
+
