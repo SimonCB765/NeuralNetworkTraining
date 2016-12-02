@@ -2,6 +2,7 @@
 
 # Python imports.
 import argparse
+import logging
 import logging.config
 import os
 import shutil
@@ -39,6 +40,9 @@ parser.add_argument("-o", "--output",
                     help="The location of the directory to save the sharded output to. Default: a top level "
                          "directory called ShardedData.",
                     type=str)
+parser.add_argument("-s", "--shardingDisabled",
+                    action="store_true",
+                    help="Whether sharding should be disabled. Default: sharding enabled.")
 parser.add_argument("-t", "--target",
                     help="The location of the file containing the target values/vectors for each input example. "
                          "Default: target data is not used.",
@@ -163,8 +167,9 @@ if isErrors:
 # ================= #
 # Shard the Dataset #
 # ================= #
-logger.info("Now starting file sharding.")
-if args.target:
-    shard_data.main(fileDataset, dirOutputDataPrep, config, args.target)
-else:
-    shard_data.main(fileDataset, dirOutputDataPrep, config)
+if not args.shardingDisabled and config.ProcessData and config.ProcessData["Shard"]:
+    logger.info("Now starting file sharding.")
+    if args.target:
+        shard_data.main(fileDataset, dirOutputDataPrep, config, args.target)
+    else:
+        shard_data.main(fileDataset, dirOutputDataPrep, config)
