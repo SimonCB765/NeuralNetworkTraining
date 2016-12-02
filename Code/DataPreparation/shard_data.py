@@ -44,7 +44,47 @@ def main(fileExamples, dirOutput, config, fileTargets=None):
         # ID is in could be 0 (a Falsey value) we test for None.
         varsToIgnore.add(config.DataFormat["ExampleIDVariable"])
 
-    # ================== #
-    # Normalise the Data #
-    # ================== #
+    # ========================================= #
+    # Determine Variables Needing Normalisation #
+    # ========================================= #
+    varsOneOfC = set()
+    varsOneOfCMin1 = set()
+    varsMinMax = set()
+    varsStandardise = set()
+    if config.ProcessData.get("Normalise"):
+        # Some variables are supposed to be normalised.
+        LOGGER.info("Now determining how to normalise variables.")
 
+        # Determine categorical normalisations needed.
+        if config.ProcessData["Normalise"].get("Categorical"):
+            if config.ProcessData["Normalise"]["Categorical"].get("OneOfC"):
+                # Determine variables needing one-of-C normalisation.
+                varsOneOfC = variable_indices_from_config.main(
+                    config.ProcessData["Normalise"]["Categorical"]["OneOfC"]["NumericIndices"],
+                    config.ProcessData["Normalise"]["Categorical"]["OneOfC"]["VariableNames"],
+                    numVariables, header
+                )
+            if config.ProcessData["Normalise"]["Categorical"].get("OneOfC-1"):
+                # Determine variables needing one-of-C-1 normalisation.
+                varsOneOfCMin1 = variable_indices_from_config.main(
+                    config.ProcessData["Normalise"]["Categorical"]["OneOfC-1"]["NumericIndices"],
+                    config.ProcessData["Normalise"]["Categorical"]["OneOfC-1"]["VariableNames"],
+                    numVariables, header
+                )
+
+        # Determine numeric normalisations needed.
+        if config.ProcessData["Normalise"].get("Numeric"):
+            if config.ProcessData["Normalise"]["Numeric"].get("MinMaxScale"):
+                # Determine variables needing min-max normalisation.
+                varsMinMax = variable_indices_from_config.main(
+                    config.ProcessData["Normalise"]["Numeric"]["MinMaxScale"]["NumericIndices"],
+                    config.ProcessData["Normalise"]["Numeric"]["MinMaxScale"]["VariableNames"],
+                    numVariables, header
+                )
+            if config.ProcessData["Normalise"]["Numeric"].get("Standardise"):
+                # Determine variables needing standardising.
+                varsStandardise = variable_indices_from_config.main(
+                    config.ProcessData["Normalise"]["Numeric"]["Standardise"]["NumericIndices"],
+                    config.ProcessData["Normalise"]["Numeric"]["Standardise"]["VariableNames"],
+                    numVariables, header
+                )
