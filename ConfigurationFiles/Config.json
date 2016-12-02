@@ -32,7 +32,7 @@
           "NumericIndices": [1, 2, 3, 4, "10:"],
           "VariableNames": ["name1", "name2"]
         },
-        "Normalise": {
+        "Standardise": {
           "NumericIndices": [1, 2, 3, 4, "10:"],
           "VariableNames": ["name1", "name2"]
         }

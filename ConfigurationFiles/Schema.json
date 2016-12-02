@@ -132,7 +132,7 @@
 
             "$ref": "#/definitions/VariableIndexer"
           },
-          "Normalise": {
+          "Standardise": {
             "description": "Variables to normalise by Gaussian standardisation.",
             "type": "object",
 
