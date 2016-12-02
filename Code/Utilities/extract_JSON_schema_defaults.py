@@ -11,28 +11,11 @@ if sys.version_info[0] >= 3:
 def main(schema):
     """Extract the default attribute values derived from the types and defaults specified in a JSON schema.
 
-    If no user supplied default is present in the schema for a given element, then defaults are defined as:
-        "array" - []
-        "object" - {}
-        "null" - None
-        "boolean", "integer", "number", "string" - No base default exists.
-    Any boolean, integer, number or string valued element that does not have a default defined for it will be left out
-    of the defaults returned. For example, the schema:
-        {
-            "type": "object",
-
-            "arrayElement": {"type": "array", ...},
-            "intElement": {"type": "integer"}
-        }
-    will return the default dictionary:
-        {"arrayElement": []}
-    As "intElement" has no default defined for it (and an integer element can not be given a base default value), the
-    element gets no default and is left out of the returned default dictionary. If this element is not given a value
-    in the instantiation of the schema, then it will not appear anywhere in either the instantiated object or the
-    schema defaults.
+    If no user supplied default is present in the schema for a given element, then only a "null" element will get a
+    default defined for it (a default of None). Only elements with defaults set (either on themselves or a sub-schema)
+    will have defaults returned.
 
     Points to note are:
-        - The base default values are all Falsey.
         - Validation of the schema structure is not performed. The schema should therefore be validated first.
         - Validation of the default values is not performed. It is up to the schema writer to ensure they are legal.
         - References are all treated as references to top level elements of the schema outside the "properties" element.
@@ -85,16 +68,14 @@ def main(schema):
         propsType = None
 
     # Extract defaults for the (sub-)schema.
-    if propsType == "array":
-        # This (sub-)schema is an array. Therefore, we'll set its default value as an empty list if no default
-        # is specified.
-        defaults = schemaProps.get("default", [])
-        defaultsFound = True
-    elif propsType == "object":
-        # This (sub-)schema is an object. Therefore, we'll set its default value as an empty dictionary if no
-        # default is specified, and then look at the elements it contains.
-        defaults = schemaProps.get("default", {})
-        defaultsFound = True
+    if propsType == "object":
+        # This (sub-)schema is an object. If no default is specified, we set a temporary default of an empty dictionary.
+        # This temporary default value is never propagated up to a parent schema. A default can only be propagated up
+        # if this (sub-)schema has a default or one of its sub-schemas has a default.
+        defaults = schemaProps.get("default", None)
+        if defaults is not None:
+            defaultsFound = True
+        defaults = {}
         for i in schemaProps:
             # For each element in the current (sub-)schema we need to determine whether the element is an object
             # that contains references or not.
@@ -124,8 +105,10 @@ def main(schema):
             subschema["properties"] = schemaProps[i]
             subschemaDefaults, defaultExtracted = main(subschema)
             if defaultExtracted:
+                # A sub-schema has a default, so there is a default value for this (sub-)schema.
+                defaultsFound = True
                 defaults[i] = subschemaDefaults
-    elif propsType in ["boolean", "integer", "number", "string"]:
+    elif propsType in ["array", "boolean", "integer", "number", "string"]:
         # The element is a basic type, so we just need to try and extract a default value.
         defaults = schemaProps.get("default", None)
         if defaults is not None:
