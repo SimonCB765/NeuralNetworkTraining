@@ -76,30 +76,14 @@
         }
       },
       "DataSplit": {
+        "default": [0.7, 0.15, 0.15],
         "description": "How to split the dataset between train, test and validation sets.",
-        "type": "object",
-
-        "TestFraction": {
-          "default": 0.7,
-          "description": "The fraction of the dataset to split off into a test set.",
+        "items": {
           "maximum": 1,
           "minimum": 0,
           "type": "number"
         },
-        "TrainFraction": {
-          "default": 0.15,
-          "description": "The fraction of the dataset to split off into a training set.",
-          "maximum": 1,
-          "minimum": 0,
-          "type": "number"
-        },
-        "ValidationFraction": {
-          "default": 0.15,
-          "description": "The fraction of the dataset to split off into a validation set.",
-          "maximum": 1,
-          "minimum": 0,
-          "type": "number"
-        }
+        "type": "array"
       },
       "Normalise": {
         "description": "Configuration parameters for normalising a dataset.",

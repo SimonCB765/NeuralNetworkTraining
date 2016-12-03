@@ -12,11 +12,7 @@
         "VariableNames": ["name1", "name2"]
       }
     },
-    "DataSplit": {
-      "TestFraction": 0.7,
-      "TrainFraction": 0.15,
-      "ValidationFraction": 0.15
-    },
+    "DataSplit": [0.7, 0.15, 0.15],
     "Normalise": {
       "Categorical": {
         "OneOfC": {
