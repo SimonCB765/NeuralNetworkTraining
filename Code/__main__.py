@@ -167,8 +167,8 @@ if isErrors:
 # ================= #
 # Shard the Dataset #
 # ================= #
-if not args.shardingDisabled and config.ProcessData and config.ProcessData.get("Shard"):
-    logger.info("Now starting file sharding.")
+if not args.shardingDisabled and config.get_param(["DataPreparation"])[0]:
+    logger.info("Now starting the file sharding.")
     if args.target:
         shard_data.main(fileDataset, dirOutputDataPrep, config, args.target)
     else:

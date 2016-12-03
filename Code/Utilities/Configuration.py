@@ -41,7 +41,6 @@ class Configuration(object):
         paramFound = False  # Whether the parameter was found.
         paramValue = self._configParams  # The value to return.
         for i in path:
-            print(paramValue.keys())
             if i in paramValue:
                 # The next element in the path was found, so keep looking.
                 paramValue = paramValue[i]
