@@ -2,6 +2,7 @@
 
 # Python imports.
 import logging
+import os
 
 # User imports.
 from . import normalise
@@ -25,24 +26,32 @@ def main(fileExamples, dirOutput, config, fileTargets=None):
 
     """
 
-    # If there is a header, then extract it and determine the index of each column.
-    # Also determine the number of variables in the dataset.
-    header = {}
-    firstLine = open(fileExamples, 'r').readline().split(config.DataFormat["Separator"])
-    numVariables = len(firstLine)
-    if config.DataFormat["HeaderPresent"]:
-        header = {j: i for i, j in enumerate(firstLine)}
+    # =============================================== #
+    # Divide the Data into Train, Test and Validation #
+    # =============================================== #
+    fileTrainData = os.path.join(dirOutput, "TempTrainData")
+    fileTestData = os.path.join(dirOutput, "TempTestData")
+    fileValidationData = os.path.join(dirOutput, "TempValidationData")
+    with open(fileExamples, 'r'):
+        # Extract the header (if one is present) and determine each variable's index. Also calculate the number of
+        # variables in the dataset.
+        header = {}
+        separator = config.get_param(["DataPreparation", "DataProperties", "Separator"])[1]
+        firstLine = open(fileExamples, 'r').readline().split(separator)
+        numVariables = len(firstLine)
+        if config.get_param(["DataPreparation", "DataProperties", "HeaderPresent"])[1]:
+            header = {j: i for i, j in enumerate(firstLine)}
 
-    # Determine the variables to ignore.
-    LOGGER.info("Now extracting the indices of the variables to ignore.")
-    varsToIgnore = variable_indices_from_config.main(
-        config.DataFormat["VariablesToIgnore"]["NumericIndices"],
-        config.DataFormat["VariablesToIgnore"]["VariableNames"], numVariables, header
-    )
-    if config.DataFormat.get("ExampleIDVariable", None) is not None:
-        # If there is an ID for each example, then that 'variable' should be ignored as well. As the column that the
-        # ID is in could be 0 (a Falsey value) we test for None.
-        varsToIgnore.add(config.DataFormat["ExampleIDVariable"])
+        # Determine the fraction of examples to go in each of the train, test and validation splits. Pad the
+        # configuration parameters with 0s so that missing test and validation fraction values mean that there are no
+        # examples allocated to those splits.
+        datasetDivisions = config.get_param(["DataPreparation", "DataSplit"])[1]
+        datasetDivisions[len(datasetDivisions):3] = [0] * (3 - len(datasetDivisions))  # Pad with 0s.
+        trainFraction = datasetDivisions[0]
+        testFraction = min(1 - trainFraction, datasetDivisions[1])
+        validationFraction = min(1 - (trainFraction + testFraction), datasetDivisions[2])
+
+        # Split the dataset.
 
     # ========================================= #
     # Determine Variables Needing Normalisation #
@@ -51,40 +60,67 @@ def main(fileExamples, dirOutput, config, fileTargets=None):
     varsOneOfCMin1 = set()
     varsMinMax = set()
     varsStandardise = set()
-    if config.ProcessData.get("Normalise"):
+    if config.get_param(["DataPreparation", "Normalise"])[0]:
         # Some variables are supposed to be normalised.
         LOGGER.info("Now determining how to normalise variables.")
 
         # Determine categorical normalisations needed.
-        if config.ProcessData["Normalise"].get("Categorical"):
-            if config.ProcessData["Normalise"]["Categorical"].get("OneOfC"):
+        categoricalNormalising = config.get_param(["DataPreparation", "Normalise", "Categorical"])
+        if categoricalNormalising[0]:
+            if categoricalNormalising[1].get("OneOfC"):
                 # Determine variables needing one-of-C normalisation.
                 varsOneOfC = variable_indices_from_config.main(
-                    config.ProcessData["Normalise"]["Categorical"]["OneOfC"]["NumericIndices"],
-                    config.ProcessData["Normalise"]["Categorical"]["OneOfC"]["VariableNames"],
+                    categoricalNormalising[1]["OneOfC"]["NumericIndices"],
+                    categoricalNormalising[1]["OneOfC"]["VariableNames"],
                     numVariables, header
                 )
-            if config.ProcessData["Normalise"]["Categorical"].get("OneOfC-1"):
+            if categoricalNormalising[1].get("OneOfC-1"):
                 # Determine variables needing one-of-C-1 normalisation.
                 varsOneOfCMin1 = variable_indices_from_config.main(
-                    config.ProcessData["Normalise"]["Categorical"]["OneOfC-1"]["NumericIndices"],
-                    config.ProcessData["Normalise"]["Categorical"]["OneOfC-1"]["VariableNames"],
+                    categoricalNormalising[1]["OneOfC-1"]["NumericIndices"],
+                    categoricalNormalising[1]["OneOfC-1"]["VariableNames"],
                     numVariables, header
                 )
 
         # Determine numeric normalisations needed.
-        if config.ProcessData["Normalise"].get("Numeric"):
-            if config.ProcessData["Normalise"]["Numeric"].get("MinMaxScale"):
+        numericNormalising = config.get_param(["DataPreparation", "Normalise", "Numeric"])
+        if numericNormalising[0]:
+            if numericNormalising[1].get("MinMaxScale"):
                 # Determine variables needing min-max normalisation.
                 varsMinMax = variable_indices_from_config.main(
-                    config.ProcessData["Normalise"]["Numeric"]["MinMaxScale"]["NumericIndices"],
-                    config.ProcessData["Normalise"]["Numeric"]["MinMaxScale"]["VariableNames"],
+                    numericNormalising[1]["MinMaxScale"]["NumericIndices"],
+                    numericNormalising[1]["MinMaxScale"]["VariableNames"],
                     numVariables, header
                 )
-            if config.ProcessData["Normalise"]["Numeric"].get("Standardise"):
+            if numericNormalising[1].get("Standardise"):
                 # Determine variables needing standardising.
                 varsStandardise = variable_indices_from_config.main(
-                    config.ProcessData["Normalise"]["Numeric"]["Standardise"]["NumericIndices"],
-                    config.ProcessData["Normalise"]["Numeric"]["Standardise"]["VariableNames"],
+                    numericNormalising[1]["Standardise"]["NumericIndices"],
+                    numericNormalising[1]["Standardise"]["VariableNames"],
                     numVariables, header
                 )
+
+    # ================================= #
+    # Determine Normalisation Functions #
+    # ================================= #
+
+
+
+
+
+    # Determine the variables to ignore.
+    varsToIgnore = config.get_param(["DataPreparation", "DataProperties", "VariablesToIgnore"])
+    if varsToIgnore[1]:
+        # Variables are supposed to be ignored.
+        LOGGER.info("Now extracting the indices of the variables to ignore.")
+        varsToIgnore = variable_indices_from_config.main(
+            varsToIgnore[1]["NumericIndices"], varsToIgnore[1]["VariableNames"], numVariables, header
+        )
+    else:
+        # No variables are being ignored.
+        varsToIgnore = set()
+    exampleID = config.get_param(["DataPreparation", "DataProperties", "ExampleIDVariable"])
+    if exampleID[0]:
+        # If there is an ID for each example, then that 'variable' should be ignored as well. As the column that the
+        # ID is in could be 0 (a Falsey value) we test for None.
+        varsToIgnore.add(exampleID[1])
