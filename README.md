@@ -25,6 +25,13 @@ See the following links for information on JSON schema:
 - https://spacetelescope.github.io/understanding-json-schema/
 - https://spacetelescope.github.io/understanding-json-schema/UnderstandingJSONSchema.pdf
 
+Required items in the schema will be specified as required and have no default defined
+Items that need a value but can have sensible defaults defined have defaults defined. These are:
+
+- whether a header is present
+- the separator used in the dataset
+- the train, test and validation fractions
+
 example, target, output and overwrite are not in configuration file but instead are command line parameters
 
 for the sequences the output and input are assumed to be in the same order (i.e. input in row 1 has its output as row 1 in target file)

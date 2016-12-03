@@ -27,54 +27,54 @@
     }
   },
 
-  "required": ["DataFormat"],
+  "required": ["DataFormat", "DataType"],
 
   "properties": {
     "DataFormat": {
-      "description": "The format that the data should take.",
-      "required": ["Format", "Type"],
+      "description": "The overall format that the data should take.",
+      "enum": ["Sequence", "Vector"],
+      "type": "string"
+    },
+    "DataType": {
+      "description": "The type of the data (ignoring binary IDs).",
+      "enum": ["binary", "float", "int"],
+      "type": "string"
+    },
+
+    "DataPreparation": {
+      "description": "Configuration parameters to prepare a dataset for use in training a neural network.",
       "type": "object",
 
-      "ExampleIDVariable": {
-        "description": "The numeric index or name of the variable that is used to index the examples.",
-        "type": {
-        "oneOf": [
-            {"type": "integer"},
-            {"type": "string"}
-          ]
-        }
-      },
-      "Format": {
-        "description": "The overall format that the data should take.",
-        "enum": ["Sequence", "Vector"],
-        "type": "string"
-      },
-      "HeaderPresent": {
-        "default": false,
-        "description": "Whether the first row of the dataset is a header.",
-        "type": "string"
-      },
-      "Separator": {
-        "default": "\t",
-        "description": "The separator between variables in the input file.",
-        "type": "string"
-      },
-      "Type": {
-        "description": "The type of the data (ignoring any example IDs)..",
-        "enum": ["binary", "float", "int"],
-        "type": "string"
-      },
-      "VariablesToIgnore": {
-        "description": "The numerical indices or the names of the variables to ignore.",
+      "DataProperties": {
+        "description": "Intrinsic properties of the dataset that need to be known in order to prepare it.",
         "type": "object",
 
-        "$ref": "#/definitions/VariableIndexer"
-      }
-    },
-    "ProcessData": {
-      "description": "Configuration parameters to prepare a dataset for training a neural network.",
-      "type": "object",
+        "ExampleIDVariable": {
+          "description": "The numeric index or name of the variable that is used to index the examples.",
+          "type": {
+          "oneOf": [
+              {"type": "integer"},
+              {"type": "string"}
+            ]
+          }
+        },
+        "HeaderPresent": {
+          "default": false,
+          "description": "Whether the first row of the dataset is a header.",
+          "type": "string"
+        },
+        "Separator": {
+          "default": "\t",
+          "description": "The separator between variables in the input file.",
+          "type": "string"
+        },
+        "VariablesToIgnore": {
+          "description": "The numerical indices or the names of the variables to ignore.",
+          "type": "object",
 
+          "$ref": "#/definitions/VariableIndexer"
+        }
+      },
       "DataSplit": {
         "description": "How to split the dataset between train, test and validation sets.",
         "type": "object",

@@ -1,16 +1,17 @@
 {
-  "DataFormat": {
-    "Format": "Vector",
-    "Type": "float",
-    "VariablesToIgnore": {
-      "NumericIndices": [1, 2, 3, 4, "10:"],
-      "VariableNames": ["name1", "name2"]
+  "DataFormat": "Vector",
+  "DataType": "float",
+
+  "DataPreparation": {
+    "DataProperties": {
+      "ExampleIDVariable": 0,
+      "HeaderPresent": false,
+      "Separator": "\t",
+      "VariablesToIgnore": {
+        "NumericIndices": [1, 2, 3, 4, "10:"],
+        "VariableNames": ["name1", "name2"]
+      }
     },
-    "ExampleIDVariable": 0,
-    "HeaderPresent": false,
-    "Separator": "\t"
-  },
-  "ProcessData": {
     "DataSplit": {
       "TestFraction": 0.7,
       "TrainFraction": 0.15,
