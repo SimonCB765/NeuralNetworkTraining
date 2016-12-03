@@ -21,32 +21,43 @@ class Configuration(object):
 
         """
 
-        # Initialise any arguments supplied at creation.
+        self._configParams = {}
         self.set_from_dict(kwargs)
 
     def set_from_dict(self, paramsToAdd):
         """Set configuration parameters from a dictionary of parameters.
+
+        This will overwrite any existing parameters with the same name.
 
         :param paramsToAdd:  Parameters to add.
         :type paramsToAdd:   dict
 
         """
 
-        # Initialise any arguments supplied at creation.
-        for i in paramsToAdd:
-            self.__dict__[i] = paramsToAdd[i]
+        self._configParams.update(paramsToAdd)
 
-    def set_from_json(self, config, schema, newEncoding=None):
+    def set_from_json(self, config, schema, newEncoding=None, storeDefaults=1):
         """Add parameters to a Configuration object from a JSON formatted file or dict.
 
-        :param config:      The location of a JSON file or a loaded JSON object containing the configuration information
-                            to add.
-        :type config:       str | dict
-        :param schema:      The schema that the configuration information must be validated against. This can either
-                            be a file location or a loaded JSON object.
-        :type schema:       str | dict
-        :param newEncoding: The encoding to convert all strings in the JSON configuration object to.
-        :type newEncoding:  str
+        Any configuration parameters that the user has defined will overwrite existing parameters with the same name.
+        Storing defaults will never overwrite user-defined or pre-existing parameters.
+
+        :param config:          The location of a JSON file or a loaded JSON object containing the configuration
+                                information to add.
+        :type config:           str | dict
+        :param schema:          The schema that the configuration information must be validated against. This can either
+                                be a file location or a loaded JSON object.
+        :type schema:           str | dict
+        :param newEncoding:     The encoding to convert all strings in the JSON configuration object to.
+        :type newEncoding:      str
+        :param storeDefaults:   Whether defaults from the schema should be stored. The possible values are:
+                                0 - store no defaults
+                                1 - store only defaults that are keys within user defined dictionaries that the user has
+                                    not supplied a value for. For example, if the configuration parameter is a
+                                    dictionary of three elements and the user has defined one, then allow the other two
+                                    to take default values.
+                                2+ - store all defaults
+        :type storeDefaults:    int
 
         """
 
@@ -69,25 +80,24 @@ class Configuration(object):
         # Validate the configuration data.
         jsonschema.validate(config, schema)
 
+        # Add the configuration parameters.
+        self._configParams.update(config)
+
         # Set schema defaults.
-        extractedDefaults, defaultsExtracted = extract_JSON_schema_defaults.main(schema)
-        for i in extractedDefaults:
-            # A valid schema will always return a dictionary following an attempt to extract defaults, so there's no
-            # need to check whether this holds as we've already validated the schema above.
-            self.__dict__[i] = extractedDefaults[i]
-
-        # Add the JSON parameters to the configuration parameters.
-        for i in config:
-            self.__dict__[i] = config[i]
-
-    def set_from_keyword(self, **kwargs):
-        """Set configuration parameters from keywords.
-
-        :param kwargs:  Parameters to add.
-        :type kwargs:   dict
-
-        """
-
-        # Initialise any arguments supplied at creation.
-        for i in kwargs:
-            self.__dict__[i] = kwargs[i]
+        if storeDefaults:
+            extractedDefaults, defaultsExtracted = extract_JSON_schema_defaults.main(schema)
+            for i in extractedDefaults:
+                # A valid schema will always return a (possibly empty) dictionary following default extraction, so
+                # there's no need to check whether this holds any values as the schema has already been validated.
+                if i in self._configParams:
+                    try:
+                        extractedDefaults[i].update(self._configParams[i])
+                        self._configParams[i] = extractedDefaults[i]
+                    except AttributeError:
+                        # We've tried to update a config parameter that is not a dictionary (JSON schema object).
+                        # In this case we don't want the default to overwrite the user's defined value.
+                        pass
+                elif storeDefaults > 1:
+                    # The parameter was not defined by the user and we want to store all defaults that will not
+                    # overwrite a user's values.
+                    self._configParams[i] = extractedDefaults[i]
