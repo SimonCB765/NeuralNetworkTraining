@@ -84,7 +84,7 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                     categoricalNormalising[1]["OneOfC"]["VariableNames"],
                     numVariables, header
                 )
-                varsOneOfC = {i: [] for i in varsOneOfC}
+                varsOneOfC = {i: set() for i in varsOneOfC}
             if categoricalNormalising[1].get("OneOfC-1"):
                 # Determine variables needing one-of-C-1 normalisation and initialise category information..
                 varsOneOfCMin1 = variable_indices_from_config.main(
@@ -92,7 +92,7 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                     categoricalNormalising[1]["OneOfC-1"]["VariableNames"],
                     numVariables, header
                 )
-                varsOneOfCMin1 = {i: [] for i in varsOneOfCMin1}
+                varsOneOfCMin1 = {i: set() for i in varsOneOfCMin1}
 
         # Determine numeric normalisations needed.
         numericNormalising = config.get_param(["DataPreparation", "Normalise", "Numeric"])
@@ -154,6 +154,12 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
             exVars = example.split(separator)
             targetVars = target.split(separator) if target else []
 
+            # Update categories for categorical variables.
+            for i in varsOneOfC:
+                varsOneOfC[i].add(exVars[i])
+            for i in varsOneOfCMin1:
+                varsOneOfCMin1[i].add(exVars[i])
+
             # Determine which direction this example should go.
             choice = random.random()
             choice = [choice < i for i in choices]
@@ -162,6 +168,16 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                 fidExampleShard.write(example)
                 fidTargetShard.write(target)
                 examplesAddedToShard += 1
+
+                # Update numeric normalisation parameters.
+                for i in varsMinMax:
+                    varsMinMax[i]["Max"] = max(varsMinMax[i]["Max"], float(exVars[i]))
+                    varsMinMax[i]["Min"] = min(varsMinMax[i]["Min"], float(exVars[i]))
+                for i in varsStandardise:
+                    varsStandardise[i]["Num"] += 1
+                    delta = float(exVars[i]) - varsStandardise[i]["Mean"]
+                    varsStandardise[i]["Mean"] += delta / varsStandardise[i]["Num"]
+                    varsStandardise[i]["SumDiffs"] += delta * (float(exVars[i]) - varsStandardise[i]["Mean"])
 
                 # Open a new shard file if needed.
                 if examplesAddedToShard == examplesPerShard:
