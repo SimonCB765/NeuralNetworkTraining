@@ -83,6 +83,7 @@
           "minimum": 0,
           "type": "number"
         },
+        "minLength": 1,
         "type": "array"
       },
       "Normalise": {
@@ -124,22 +125,11 @@
           }
         }
       },
-      "Shard": {
-        "description": "Configuration parameters for splitting a dataset into shards.",
-        "type": "object",
-
-        "ExamplesPerShard": {
-          "default": 1000,
-          "description": "The number of examples to save in each shard.",
-          "minimum": 1,
-          "type": "integer"
-        },
-        "ShardsToGenerate": {
-          "default": 100,
-          "description": "The number of dataset shards to generate.",
-          "minimum": 1,
-          "type": "integer"
-        }
+      "ExamplesPerShard": {
+        "default": 1000,
+        "description": "The number of examples to save in each shard.",
+        "minimum": 1,
+        "type": "integer"
       }
     }
   }

@@ -5,11 +5,11 @@
   "DataPreparation": {
     "DataProperties": {
       "ExampleIDVariable": 0,
-      "HeaderPresent": false,
+      "HeaderPresent": true,
       "Separator": "\t",
       "VariablesToIgnore": {
-        "NumericIndices": [1, 2, 3, 4, "10:"],
-        "VariableNames": ["name1", "name2"]
+        "NumericIndices": [1, 2, 3, 4, "10", "15:19"],
+        "VariableNames": ["name1", "1.*", "2.*", "3.*", "5.*"]
       }
     },
     "DataSplit": [0.7, 0.15, 0.15],
@@ -35,9 +35,6 @@
         }
       }
     },
-    "Shard": {
-      "ExamplesPerShard": 100,
-      "ShardsToGenerate": 10
-    }
+    "ExamplesPerShard": 100
   }
 }
