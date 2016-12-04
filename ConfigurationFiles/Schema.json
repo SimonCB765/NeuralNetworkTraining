@@ -131,6 +131,12 @@
         "minimum": 1,
         "type": "integer"
       }
+    },
+
+    "RandomSeed": {
+      "default": 0,
+      "description": "The random seed to use to initialise the random number generators.",
+      "type": "integer"
     }
   }
 }

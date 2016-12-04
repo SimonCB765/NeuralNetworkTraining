@@ -51,6 +51,13 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
 
     """
 
+    # Seed the random number generator.
+    randomSeed = config.get_param(["RandomSeed"])
+    if randomSeed[0]:
+        random.seed(randomSeed[1])
+    else:
+        randomSeed.seed(None)
+
     dataType = config.get_param(["DataType"])  # Extract the the type of the data.
 
     # Extract the header (if one is present) and determine each variable's index. Also calculate the number of
@@ -221,6 +228,5 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
         varsToIgnore = set()
     exampleID = config.get_param(["DataPreparation", "DataProperties", "ExampleIDVariable"])
     if exampleID[0]:
-        # If there is an ID for each example, then that 'variable' should be ignored as well. As the column that the
-        # ID is in could be 0 (a Falsey value) we test for None.
+        # If there is an ID for each example, then that 'variable' should be ignored as well.
         varsToIgnore.add(exampleID[1])
