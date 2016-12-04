@@ -169,7 +169,8 @@ if isErrors:
 # ================= #
 if not args.shardingDisabled and config.get_param(["DataPreparation"])[0]:
     logger.info("Now starting the file sharding.")
-    if args.target:
-        shard_data.main(fileDataset, dirOutputDataPrep, config, args.target)
+    dataFormat = config.get_param(["DataFormat"])
+    if dataFormat[1] == "Vector":
+        shard_data.shard_vector(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
     else:
-        shard_data.main(fileDataset, dirOutputDataPrep, config)
+        shard_data.shard_sequence(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
