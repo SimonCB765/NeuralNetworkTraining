@@ -7,7 +7,6 @@ import random
 import sys
 
 # User imports.
-from . import normalise
 from Utilities import variable_indices_from_config
 
 # Globals.
@@ -122,9 +121,9 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                 )
                 varsStandardise = {i: {"Num": 0, "Mean": 0.0, "SumDiffs": 0.0} for i in varsStandardise}
 
-    # ===================================================== #
-    # Divide the Data and Determine Normalisation Functions #
-    # ===================================================== #
+    # ====================================================== #
+    # Divide the Data and Determine Normalisation Parameters #
+    # ====================================================== #
     dirTrainExamples = os.path.join(dirOutput, "TrainingData")
     os.makedirs(dirTrainExamples)
     fileTestExamples = os.path.join(dirOutput, "TestExamples")
