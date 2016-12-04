@@ -55,7 +55,7 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     if randomSeed[0]:
         random.seed(randomSeed[1])
     else:
-        randomSeed.seed(None)
+        random.seed(None)
 
     dataType = config.get_param(["DataType"])  # Extract the the type of the data.
 
