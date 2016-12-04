@@ -3,6 +3,7 @@
 # Python imports.
 import logging
 import os
+import random
 import sys
 
 # User imports.
@@ -65,10 +66,10 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     # ========================================= #
     # Determine Variables Needing Normalisation #
     # ========================================= #
-    varsOneOfC = set()
-    varsOneOfCMin1 = set()
-    varsMinMax = set()
-    varsStandardise = set()
+    varsOneOfC = {}
+    varsOneOfCMin1 = {}
+    varsMinMax = {}
+    varsStandardise = {}
     if config.get_param(["DataPreparation", "Normalise"])[0]:
         # Some variables are supposed to be normalised.
         LOGGER.info("Now determining how to normalise variables.")
@@ -77,37 +78,117 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
         categoricalNormalising = config.get_param(["DataPreparation", "Normalise", "Categorical"])
         if categoricalNormalising[0]:
             if categoricalNormalising[1].get("OneOfC"):
-                # Determine variables needing one-of-C normalisation.
+                # Determine variables needing one-of-C normalisation and initialise category information.
                 varsOneOfC = variable_indices_from_config.main(
                     categoricalNormalising[1]["OneOfC"]["NumericIndices"],
                     categoricalNormalising[1]["OneOfC"]["VariableNames"],
                     numVariables, header
                 )
+                varsOneOfC = {i: [] for i in varsOneOfC}
             if categoricalNormalising[1].get("OneOfC-1"):
-                # Determine variables needing one-of-C-1 normalisation.
+                # Determine variables needing one-of-C-1 normalisation and initialise category information..
                 varsOneOfCMin1 = variable_indices_from_config.main(
                     categoricalNormalising[1]["OneOfC-1"]["NumericIndices"],
                     categoricalNormalising[1]["OneOfC-1"]["VariableNames"],
                     numVariables, header
                 )
+                varsOneOfCMin1 = {i: [] for i in varsOneOfCMin1}
 
         # Determine numeric normalisations needed.
         numericNormalising = config.get_param(["DataPreparation", "Normalise", "Numeric"])
         if numericNormalising[0]:
             if numericNormalising[1].get("MinMaxScale"):
-                # Determine variables needing min-max normalisation.
+                # Determine variables needing min-max normalisation and initialise min and max.
                 varsMinMax = variable_indices_from_config.main(
                     numericNormalising[1]["MinMaxScale"]["NumericIndices"],
                     numericNormalising[1]["MinMaxScale"]["VariableNames"],
                     numVariables, header
                 )
+                varsMinMax = {i: {"Min": sys.maxsize, "Max": -sys.maxsize} for i in varsMinMax}
             if numericNormalising[1].get("Standardise"):
-                # Determine variables needing standardising.
+                # Determine variables needing standardising and initialise mean, number of examples and squares of
+                # differences from the current mean.
                 varsStandardise = variable_indices_from_config.main(
                     numericNormalising[1]["Standardise"]["NumericIndices"],
                     numericNormalising[1]["Standardise"]["VariableNames"],
                     numVariables, header
                 )
+                varsStandardise = {i: {"Num": 0, "Mean": 0.0, "SumDiffs": 0.0} for i in varsStandardise}
+
+    # ===================================================== #
+    # Divide the Data and Determine Normalisation Functions #
+    # ===================================================== #
+    dirTrainExamples = os.path.join(dirOutput, "TrainingData")
+    os.makedirs(dirTrainExamples)
+    fileTestExamples = os.path.join(dirOutput, "TestExamples")
+    fileTestTargets = os.path.join(dirOutput, "TestTargets")
+    fileValExamples = os.path.join(dirOutput, "ValidationExamples")
+    fileValTargets = os.path.join(dirOutput, "ValidationTargets")
+    with open(fileExamples, 'r') as fidExamples, open(fileTargets if fileTargets else os.devnull, 'r') as fidTargets, \
+            open(fileTestExamples, 'w') as fidTestExamples, open(fileTestTargets, 'w') as fidTestTargets, \
+            open(fileValExamples, 'w') as fidValExamples, open(fileValTargets, 'w') as fidValTargets:
+        # Strip the header if one is present.
+        if headersPresent:
+            fidExamples.readline()
+            fidTargets.readline()
+
+        # Setup the training set shards.
+        examplesPerShard = config.get_param(["DataPreparation", "ExamplesPerShard"])[1]  # Examples to put in a shard.
+        examplesAddedToShard = 0  # The number of examples added to the current shard.
+        currentFileNumber = 0
+        fidExampleShard = open(os.path.join(dirTrainExamples, "Shard_{:d}_Example.txt".format(currentFileNumber)), 'w')
+        fidTargetShard = open(os.path.join(dirTrainExamples, "Shard_{:d}_Target.txt".format(currentFileNumber)), 'w')
+
+        # Determine the fraction of examples to go in each of the train, test and validation splits. Pad the
+        # configuration parameters with 0s so that missing test and validation fraction values mean that there are no
+        # examples allocated to those splits.
+        datasetDivisions = config.get_param(["DataPreparation", "DataSplit"])[1]
+        datasetDivisions[len(datasetDivisions):3] = [0] * (3 - len(datasetDivisions))  # Pad with 0s.
+        trainFraction = datasetDivisions[0]
+        testFraction = min(1 - trainFraction, datasetDivisions[1])
+        validationFraction = min(1 - (trainFraction + testFraction), datasetDivisions[2])
+        choices = [trainFraction, trainFraction + testFraction, trainFraction + testFraction + validationFraction]
+
+        # Split the dataset.
+        for example, target in izip_longest(fidExamples, fidTargets, fillvalue=''):
+            exVars = example.split(separator)
+            targetVars = target.split(separator) if target else []
+
+            # Determine which direction this example should go.
+            choice = random.random()
+            choice = [choice < i for i in choices]
+            if choice[0]:
+                # The example will go to the training set.
+                fidExampleShard.write(example)
+                fidTargetShard.write(target)
+                examplesAddedToShard += 1
+
+                # Open a new shard file if needed.
+                if examplesAddedToShard == examplesPerShard:
+                    fidExampleShard.close()
+                    fidTargetShard.close()
+                    examplesAddedToShard = 0
+                    currentFileNumber += 1
+                    fidExampleShard = open(
+                        os.path.join(dirTrainExamples, "Shard_{:d}_Example.txt".format(currentFileNumber)), 'w'
+                    )
+                    fidTargetShard = open(
+                        os.path.join(dirTrainExamples, "Shard_{:d}_Target.txt".format(currentFileNumber)), 'w'
+                    )
+            elif choice[1]:
+                # The example will go to the test set.
+                fidTestExamples.write(example)
+                fidTestTargets.write(target)
+            elif choice[2]:
+                # The example will go to the validation set.
+                fidValExamples.write(example)
+                fidValTargets.write(target)
+            else:
+                # The example will not go to any of the sets.
+                pass
+    # Close the final shard files.
+    fidExampleShard.close()
+    fidTargetShard.close()
 
     # ================================= #
     # Determine the Variables to Ignore #
@@ -127,29 +208,3 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
         # If there is an ID for each example, then that 'variable' should be ignored as well. As the column that the
         # ID is in could be 0 (a Falsey value) we test for None.
         varsToIgnore.add(exampleID[1])
-
-    # =============================================== #
-    # Divide the Data into Train, Test and Validation #
-    # =============================================== #
-    fileTempTrainExamples = os.path.join(dirOutput, "TempTrainExamples")
-    fileTempTrainExamples = os.path.join(dirOutput, "TempTrainTargets")
-    fileTempTestExamples = os.path.join(dirOutput, "TempTestExamples")
-    fileTempTestExamples = os.path.join(dirOutput, "TempTestTargets")
-    fileTempValxamples = os.path.join(dirOutput, "TempValidationExamples")
-    fileTempValxamples = os.path.join(dirOutput, "TempValidationTargets")
-    with open(fileExamples, 'r') as fidExamples, open(fileTargets if fileTargets else os.devnull, 'r') as fidTargets:
-        # Determine the fraction of examples to go in each of the train, test and validation splits. Pad the
-        # configuration parameters with 0s so that missing test and validation fraction values mean that there are no
-        # examples allocated to those splits.
-        datasetDivisions = config.get_param(["DataPreparation", "DataSplit"])[1]
-        datasetDivisions[len(datasetDivisions):3] = [0] * (3 - len(datasetDivisions))  # Pad with 0s.
-        trainFraction = datasetDivisions[0]
-        testFraction = min(1 - trainFraction, datasetDivisions[1])
-        validationFraction = min(1 - (trainFraction + testFraction), datasetDivisions[2])
-
-        # Split the dataset.
-        for example, target in izip_longest(fidExamples, fidTargets):
-            example = example.split(separator)
-            target = target.split(separator) if target else []
-            print(len(example), len(target), target)
-            break

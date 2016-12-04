@@ -40,6 +40,12 @@ Anything in the configuration file will be carried out, so if you don't want to 
 
 Numeric indexing is 0-based
 
+Sharding is randomised in the sense that it is not split perfectly. So if you say 70/15/15 then each example is given a 0.7 chance
+of going into train, 0.15 into test and 0.15 into validation
+
+if you do supply the fractions (rather than relying on the defaults) then there must be at least a training fraction provided
+also if you only supply a subset (like only supply the train and test) then no examples will go to validation in this case
+
 Training fraction takes precendence, then test then validation. So if fractions are:
 
 - train - T_f
@@ -53,8 +59,6 @@ and dataset contains N examples, then the dataset sizes will be:
 - validation = V_n = min((N - T_n - E_n) * V_f, N * V_f)
 
 There can be examples that are left out of all three datasets, e.g. if T_f = 0.5, E_f = 0.2 and V_f = 0.2.
-
-ExamplesPerShard takes precedence over ShardsToGenerate, and therefore ShardsToGenerate is ignored if ExamplesPerShard is present
 
 Putting a reference directly into an object is possible, e.g.:
     "Schema": {
