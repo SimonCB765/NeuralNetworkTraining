@@ -81,12 +81,14 @@ class Configuration(object):
         :param newEncoding:     The encoding to convert all strings in the JSON configuration object to.
         :type newEncoding:      str
         :param storeDefaults:   Whether defaults from the schema should be stored. The possible values are:
-                                0 - store no defaults
-                                1 - store only defaults that are keys within user defined dictionaries that the user has
-                                    not supplied a value for. For example, if the configuration parameter is a
-                                    dictionary of three elements and the user has defined one, then allow the other two
-                                    to take default values.
-                                2+ - store all defaults
+                                0 - Store no defaults.
+                                1 - Store top level parameter defaults (i.e. those contained directly within the
+                                    properties element of the schema). Also store defaults for missing values within
+                                    sub-schemas that a user has defined some values of. For examples, if the
+                                    configuration parameter is a dictionary of three elements and the user has given a
+                                    value for one, then allow the other two to take default values. If the user had not
+                                    given values for any of the three, then no defaults would be set.
+                                2+ - Store all defaults.
         :type storeDefaults:    int
 
         """
@@ -120,6 +122,7 @@ class Configuration(object):
                 # A valid schema will always return a (possibly empty) dictionary following default extraction, so
                 # there's no need to check whether this holds any values as the schema has already been validated.
                 if i in self._configParams:
+                    # The user has specified some (or all) of the values for this configuration parameter.
                     try:
                         extractedDefaults[i].update(self._configParams[i])
                         self._configParams[i] = extractedDefaults[i]
@@ -127,6 +130,10 @@ class Configuration(object):
                         # We've tried to update a config parameter that is not a dictionary (JSON schema object).
                         # In this case we don't want the default to overwrite the user's defined value.
                         pass
+                elif not isinstance(i, dict):
+                    # The default is a top level parameter (held directly in the schema's properties element) that
+                    # the user did not supply a value for, so we use the default.
+                    self._configParams[i] = extractedDefaults[i]
                 elif storeDefaults > 1:
                     # The parameter was not defined by the user and we want to store all defaults that will not
                     # overwrite a user's values.
