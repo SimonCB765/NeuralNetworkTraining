@@ -3,6 +3,7 @@
 # Python imports.
 import logging
 import os
+import sys
 
 # User imports.
 from . import normalise
@@ -11,9 +12,15 @@ from Utilities import variable_indices_from_config
 # Globals.
 LOGGER = logging.getLogger(__name__)
 
+# Define functions for compatibility.
+if sys.version_info[0] >= 3:
+    from itertools import zip_longest as izip_longest
+else:
+    from itertools import izip_longest
 
-def main(fileExamples, dirOutput, config, fileTargets=None):
-    """Shard the dataset of examples.
+
+def shard_sequence(fileExamples, dirOutput, config, fileTargets=None):
+    """Shard a dataset where each example is a sequence.
 
     :param fileExamples:    The location of the file containing the dataset of input examples.
     :type fileExamples:     str
@@ -26,32 +33,34 @@ def main(fileExamples, dirOutput, config, fileTargets=None):
 
     """
 
-    # =============================================== #
-    # Divide the Data into Train, Test and Validation #
-    # =============================================== #
-    fileTrainData = os.path.join(dirOutput, "TempTrainData")
-    fileTestData = os.path.join(dirOutput, "TempTestData")
-    fileValidationData = os.path.join(dirOutput, "TempValidationData")
-    with open(fileExamples, 'r'):
-        # Extract the header (if one is present) and determine each variable's index. Also calculate the number of
-        # variables in the dataset.
-        header = {}
-        separator = config.get_param(["DataPreparation", "DataProperties", "Separator"])[1]
-        firstLine = open(fileExamples, 'r').readline().split(separator)
-        numVariables = len(firstLine)
-        if config.get_param(["DataPreparation", "DataProperties", "HeaderPresent"])[1]:
-            header = {j: i for i, j in enumerate(firstLine)}
+    pass
 
-        # Determine the fraction of examples to go in each of the train, test and validation splits. Pad the
-        # configuration parameters with 0s so that missing test and validation fraction values mean that there are no
-        # examples allocated to those splits.
-        datasetDivisions = config.get_param(["DataPreparation", "DataSplit"])[1]
-        datasetDivisions[len(datasetDivisions):3] = [0] * (3 - len(datasetDivisions))  # Pad with 0s.
-        trainFraction = datasetDivisions[0]
-        testFraction = min(1 - trainFraction, datasetDivisions[1])
-        validationFraction = min(1 - (trainFraction + testFraction), datasetDivisions[2])
 
-        # Split the dataset.
+def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
+    """Shard a dataset where each example is a single vector.
+
+    :param fileExamples:    The location of the file containing the dataset of input examples.
+    :type fileExamples:     str
+    :param dirOutput:       The location of the directory to write out the sharded files to.
+    :type dirOutput:        str
+    :param config:          The object containing the configuration parameters for the sharding.
+    :type config:           Configuration.Configuration
+    :param fileTargets:     The location of the file containing the targets of the input examples.
+    :type fileTargets:      str
+
+    """
+
+    dataType = config.get_param(["DataType"])  # Extract the the type of the data.
+
+    # Extract the header (if one is present) and determine each variable's index. Also calculate the number of
+    # variables in the dataset.
+    headersPresent = config.get_param(["DataPreparation", "DataProperties", "HeaderPresent"])[1]
+    separator = config.get_param(["DataPreparation", "DataProperties", "Separator"])[1]  # Extract the separator string.
+    firstLine = open(fileExamples, 'r').readline().split(separator)
+    header = {}
+    if headersPresent:
+        header = {j: i for i, j in enumerate(firstLine)}
+    numVariables = len(firstLine)  # Number of variables (including the ID variable if there is one).
 
     # ========================================= #
     # Determine Variables Needing Normalisation #
@@ -101,14 +110,8 @@ def main(fileExamples, dirOutput, config, fileTargets=None):
                 )
 
     # ================================= #
-    # Determine Normalisation Functions #
+    # Determine the Variables to Ignore #
     # ================================= #
-
-
-
-
-
-    # Determine the variables to ignore.
     varsToIgnore = config.get_param(["DataPreparation", "DataProperties", "VariablesToIgnore"])
     if varsToIgnore[1]:
         # Variables are supposed to be ignored.
@@ -124,3 +127,29 @@ def main(fileExamples, dirOutput, config, fileTargets=None):
         # If there is an ID for each example, then that 'variable' should be ignored as well. As the column that the
         # ID is in could be 0 (a Falsey value) we test for None.
         varsToIgnore.add(exampleID[1])
+
+    # =============================================== #
+    # Divide the Data into Train, Test and Validation #
+    # =============================================== #
+    fileTempTrainExamples = os.path.join(dirOutput, "TempTrainExamples")
+    fileTempTrainExamples = os.path.join(dirOutput, "TempTrainTargets")
+    fileTempTestExamples = os.path.join(dirOutput, "TempTestExamples")
+    fileTempTestExamples = os.path.join(dirOutput, "TempTestTargets")
+    fileTempValxamples = os.path.join(dirOutput, "TempValidationExamples")
+    fileTempValxamples = os.path.join(dirOutput, "TempValidationTargets")
+    with open(fileExamples, 'r') as fidExamples, open(fileTargets if fileTargets else os.devnull, 'r') as fidTargets:
+        # Determine the fraction of examples to go in each of the train, test and validation splits. Pad the
+        # configuration parameters with 0s so that missing test and validation fraction values mean that there are no
+        # examples allocated to those splits.
+        datasetDivisions = config.get_param(["DataPreparation", "DataSplit"])[1]
+        datasetDivisions[len(datasetDivisions):3] = [0] * (3 - len(datasetDivisions))  # Pad with 0s.
+        trainFraction = datasetDivisions[0]
+        testFraction = min(1 - trainFraction, datasetDivisions[1])
+        validationFraction = min(1 - (trainFraction + testFraction), datasetDivisions[2])
+
+        # Split the dataset.
+        for example, target in izip_longest(fidExamples, fidTargets):
+            example = example.split(separator)
+            target = target.split(separator) if target else []
+            print(len(example), len(target), target)
+            break
