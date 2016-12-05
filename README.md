@@ -40,6 +40,8 @@ Anything in the configuration file will be carried out, so if you don't want to 
 
 Numeric indexing is 0-based
 
+the example ID 'variable' is always ignored in the final data representation
+
 Sharding is randomised in the sense that it is not split perfectly. So if you say 70/15/15 then each example is given a 0.7 chance
 of going into train, 0.15 into test and 0.15 into validation
 
@@ -60,6 +62,8 @@ and dataset contains N examples, then the dataset sizes will be:
 
 There can be examples that are left out of all three datasets, e.g. if T_f = 0.5, E_f = 0.2 and V_f = 0.2.
 
+
+For default extraction references are expected to be in the form of : "ReffedElement": {"$ref": "#/definitions/VariableIndexer"}
 Putting a reference directly into an object is possible, e.g.:
     "Schema": {
         "description": "Variables to convert to a one-of-(C-1) encoding, where C is the number of categories.",
