@@ -82,6 +82,7 @@ Regular expression variales names are intended to be matched from the beginning 
 	- https://visualstudiomagazine.com/articles/2014/01/01/how-to-standardize-data-for-neural-networks.aspx
 	- LeCun efficient backprop (http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf)
 	- http://www.faqs.org/faqs/ai-faq/neural-nets/part2/
+	- http://www.faqs.org/faqs/ai-faq/neural-nets/part2/section-7.html
 	- Basically, standardise to avoid saturation with big values and also to get the points clustered around the origin as if you initialise biases (and weights) with small random values all possible hyperplanes are likely to be very close to the origin, so you don't miss the data cloud if you standardise
 	    - Similar reason for making binary data -1/+1 not 0/+1
 	- Numeric independent (done only on training portion and then applied to test and validation)
