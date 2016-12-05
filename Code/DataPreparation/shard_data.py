@@ -4,6 +4,7 @@
 import logging
 import os
 import random
+import shutil
 import sys
 
 # User imports.
@@ -124,15 +125,17 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     # ====================================================== #
     # Divide the Data and Determine Normalisation Parameters #
     # ====================================================== #
-    dirTrainExamples = os.path.join(dirOutput, "TrainingData")
-    os.makedirs(dirTrainExamples)
-    fileTestExamples = os.path.join(dirOutput, "TestExamples")
+    dirTempTrainData = os.path.join(dirOutput, "TempTrainingData")
+    os.makedirs(dirTempTrainData)
+    dirTrainData = os.path.join(dirOutput, "TrainingData")
+    os.makedirs(dirTrainData)
+    fileTempTestExamples = os.path.join(dirOutput, "TempTestExamples")
     fileTestTargets = os.path.join(dirOutput, "TestTargets")
-    fileValExamples = os.path.join(dirOutput, "ValidationExamples")
+    fileTempValExamples = os.path.join(dirOutput, "TempValidationExamples")
     fileValTargets = os.path.join(dirOutput, "ValidationTargets")
     with open(fileExamples, 'r') as fidExamples, open(fileTargets if fileTargets else os.devnull, 'r') as fidTargets, \
-            open(fileTestExamples, 'w') as fidTestExamples, open(fileTestTargets, 'w') as fidTestTargets, \
-            open(fileValExamples, 'w') as fidValExamples, open(fileValTargets, 'w') as fidValTargets:
+            open(fileTempTestExamples, 'w') as fidTestExamples, open(fileTestTargets, 'w') as fidTestTargets, \
+            open(fileTempValExamples, 'w') as fidValExamples, open(fileValTargets, 'w') as fidValTargets:
         # Strip the header if one is present.
         if headersPresent:
             fidExamples.readline()
@@ -142,8 +145,12 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
         examplesPerShard = config.get_param(["DataPreparation", "ExamplesPerShard"])[1]  # Examples to put in a shard.
         examplesAddedToShard = 0  # The number of examples added to the current shard.
         currentFileNumber = 0
-        fidExampleShard = open(os.path.join(dirTrainExamples, "Shard_{:d}_Example.txt".format(currentFileNumber)), 'w')
-        fidTargetShard = open(os.path.join(dirTrainExamples, "Shard_{:d}_Target.txt".format(currentFileNumber)), 'w')
+        fidExampleShard = open(
+            os.path.join(dirTempTrainData, "Shard_{:d}_Example".format(currentFileNumber)), 'w'
+        )
+        fidTargetShard = open(
+            os.path.join(dirTrainData, "Shard_{:d}_Target".format(currentFileNumber)), 'w'
+        )
 
         # Determine the fraction of examples to go in each of the train, test and validation splits. Pad the
         # configuration parameters with 0s so that missing test and validation fraction values mean that there are no
@@ -158,7 +165,6 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
         # Split the dataset.
         for example, target in izip_longest(fidExamples, fidTargets, fillvalue=''):
             exVars = example.split(separator)
-            targetVars = target.split(separator) if target else []
 
             # Update categories for categorical variables.
             for i in varsOneOfC:
@@ -192,10 +198,10 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                     examplesAddedToShard = 0
                     currentFileNumber += 1
                     fidExampleShard = open(
-                        os.path.join(dirTrainExamples, "Shard_{:d}_Example.txt".format(currentFileNumber)), 'w'
+                        os.path.join(dirTempTrainData, "Shard_{:d}_Example".format(currentFileNumber)), 'w'
                     )
                     fidTargetShard = open(
-                        os.path.join(dirTrainExamples, "Shard_{:d}_Target.txt".format(currentFileNumber)), 'w'
+                        os.path.join(dirTrainData, "Shard_{:d}_Target".format(currentFileNumber)), 'w'
                     )
             elif choice[1]:
                 # The example will go to the test set.
@@ -229,3 +235,30 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     if exampleID[0]:
         # If there is an ID for each example, then that 'variable' should be ignored as well.
         varsToIgnore.add(exampleID[1])
+
+    # ============================== #
+    # Normalise the Data and Save it #
+    # ============================== #
+    # Normalise and save the training data.
+    trainingShards = [
+        (os.path.join(dirTempTrainData, i), os.path.join(dirTrainData, i)) for i in os.listdir(dirTempTrainData)
+        ]
+    for fileTempShard, fileShard in trainingShards:
+        with open(fileTempShard, 'r') as fidTempShard, open(fileShard, 'w') as fidShard:
+            for example in fidTempShard:
+                exVars = example.strip().split(separator)
+    shutil.rmtree(dirTempTrainData)
+
+    # Normalise and save the test data.
+    fileTestExamples = os.path.join(dirOutput, "TestExamples")
+    with open(fileTempTestExamples, 'r') as fidTempTest, open(fileTestExamples, 'w') as fidTestExamples:
+        for example in fidTempTest:
+            exVars = example.strip().split(separator)
+    os.remove(fileTempTestExamples)
+
+    # Normalise and save the validation data.
+    fileValExamples = os.path.join(dirOutput, "ValidationExamples")
+    with open(fileTempValExamples, 'r') as fidTempVal, open(fileValExamples, 'w') as fidValExamples:
+        for example in fidTempVal:
+            exVars = example.strip().split(separator)
+    os.remove(fileTempValExamples)
