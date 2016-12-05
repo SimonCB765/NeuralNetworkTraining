@@ -58,15 +58,6 @@ def extract_schema_defaults(schema):
         - Validation of the default values is not performed. It is up to the schema writer to ensure they are legal.
         - References are all treated as references to top level elements of the schema outside the "properties" element.
             Traditionally the referenced elements would be held in a top level "definitions" object.
-        - If a $ref keyword appears in an object, then the referenced element is imported into the space of the object.
-            For example, if there is a referenced object
-                {"description": "...", "type": "object", "ReffedKey1": ..., "ReffedKey2": ...}
-            at path "#/path/to/ref", then the object
-                {"$ref": "#/path/to/ref"}
-            will get converted to
-                {"description": "...", "type": "object", "ReffedKey1": ..., "ReffedKey2": ...}
-            Any clashes in key names will be decided by overwriting the original value associated with the key with the
-            value from the referenced object.
         - Defaults specified in a sub-schema will override those specified higher up the schema hierarchy. For example,
             {
                 "default": {"key": 0},
@@ -89,71 +80,35 @@ def extract_schema_defaults(schema):
     # default value that can be returned. It's therefore not possible to simple test the returned defaults value for
     # truthiness in order to determine whether default values were found. Nor is it possible to test for None
     # explicitly as the default value for a "null" type element is None, so this is also a valid default value.
-    defaults = None
+    schemaDefaults = {}
     defaultsFound = False
 
-    # Determine the type of the current (sub-)schema.
-    schemaProps = schema.get("properties", {})
-    try:
-        # If no type is defined then we default to "object". This only can occur at the top-level of the schema when
-        # we are first looking at the real original "properties" value (as this is implicitly an object and does not
-        # have a type stored within it).
-        propsType = schemaProps.get("type", "object")
-    except AttributeError:
-        # The only elements that do not have a recorded type are either invalid objects where the type was forgotten
-        # (which would be caught by validating the schema) or entries like the "description" field of an object. When
-        # examining these fields we just want to skip them as they're of no interest in setting defaults.
-        propsType = None
+    # Go through each element in the (sub-)schema and determine if it has a default value.
+    for i, j in iteritems(schema.get("properties")):
+        # If the element value is a reference, then replace the reference with the referenced element.
+        if "$ref" in j.keys():
+            defPath = j.get("$ref").split("/")[1:]  # Ignore the '#' at the beginning of the ref path.
+            j = reduce(lambda d, key: d.get(key) if d else None, defPath, schema)
 
-    # Extract defaults for the (sub-)schema.
-    if propsType == "object":
-        # This (sub-)schema is an object. If no default is specified, we set a temporary default of an empty dictionary.
-        # This temporary default value is never propagated up to a parent schema. A default can only be propagated up
-        # if this (sub-)schema has a default or one of its sub-schemas has a default.
-        defaults = schemaProps.get("default", None)
-        if defaults is not None:
-            defaultsFound = True
-        defaults = {}
-        for i in schemaProps:
-            # For each element in the current (sub-)schema we need to determine whether the element is an object
-            # that contains references or not.
-            subschema = schema
-            try:
-                # If no exception is raised during the accessing of $ref, then the element is an object that
-                # contains a $ref element. In this case the current (sub-)schema looks something like:
-                #   "CurrentSchema": {
-                #       "description": "Some description...",
-                #       "type": "object",
-                #       "EleWithRef": {"$ref": "#/definitions/DefLocation"},
-                #       "$ref": "#/definitions/DefLocation"
-                #   }
-                # In this case, rather than going through each element in the EleWithRef object, we directly
-                # replace the {"$ref": "#/definitions/DefLocation"} object with the one located at
-                # #/definitions/DefLocation and go through that instead. We also directly incorporate the element at
-                # #/definitions/DefLocation into the CurrentSchema element due to the
-                # "$ref": "#/definitions/DefLocation" element.
-                defPath = schemaProps[i].get("$ref").split("/")[1:]  # Ignore the '#' at the beginning of the ref path.
-                del schemaProps[i]["$ref"]
-                referencedProps = reduce(lambda d, key: d.get(key) if d else None, defPath, schema)
-                schemaProps[i].update(referencedProps)
-            except AttributeError:
-                # The element does not contain a reference (and may not even be an object), so there is no need to
-                # manipulate the element.
-                pass
-            subschema["properties"] = schemaProps[i]
-            subschemaDefaults, defaultExtracted = extract_schema_defaults(subschema)
+        # Determine the type of the element.
+        elementType = j.get("type")
+
+        if elementType == "object":
+            # The element is an object, so try and extract its defaults.
+            schema["properties"] = j["properties"]
+            elementDefaults, defaultExtracted = extract_schema_defaults(schema)
             if defaultExtracted:
-                # A sub-schema has a default, so there is a default value for this (sub-)schema.
                 defaultsFound = True
-                defaults[i] = subschemaDefaults
-    elif propsType in ["array", "boolean", "integer", "number", "string"]:
-        # The element is a basic type, so we just need to try and extract a default value.
-        defaults = schemaProps.get("default", None)
-        if defaults is not None:
+                schemaDefaults[i] = elementDefaults
+        elif elementType in ["array", "boolean", "integer", "number", "string"]:
+            # The element is a basic type, so we just need to try and extract a default value.
+            default = j.get("default", None)
+            if default is not None:
+                schemaDefaults[i] = default
+                defaultsFound = True
+        elif elementType == "null":
+            # The element is a null type, so just leave the default as None.
             defaultsFound = True
-    elif propsType == "null":
-        # The element is a null type, so just leave the default as None.
-        defaultsFound = True
-        defaults = None
+            schemaDefaults[i] = None
 
-    return defaults, defaultsFound
+    return schemaDefaults, defaultsFound
