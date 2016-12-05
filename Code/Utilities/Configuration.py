@@ -4,8 +4,7 @@
 import json
 
 # User imports.
-from . import change_json_encoding
-from . import extract_JSON_schema_defaults
+from . import json_schema_operations
 
 # 3rd party imports.
 import jsonschema
@@ -98,7 +97,7 @@ class Configuration(object):
             fid = open(config, 'r')
             config = json.load(fid)
             if newEncoding:
-                config = change_json_encoding.main(config, newEncoding)
+                config = json_schema_operations.change_encoding(config, newEncoding)
             fid.close()
 
         # Extract the schema information.
@@ -106,7 +105,7 @@ class Configuration(object):
             fid = open(schema, 'r')
             schema = json.load(fid)
             if newEncoding:
-                schema = change_json_encoding.main(schema, newEncoding)
+                schema = json_schema_operations.change_encoding(schema, newEncoding)
             fid.close()
 
         # Validate the configuration data.
@@ -117,7 +116,7 @@ class Configuration(object):
 
         # Set schema defaults.
         if storeDefaults:
-            extractedDefaults, defaultsExtracted = extract_JSON_schema_defaults.main(schema)
+            extractedDefaults, defaultsExtracted = json_schema_operations.extract_schema_defaults(schema)
             for i in extractedDefaults:
                 # A valid schema will always return a (possibly empty) dictionary following default extraction, so
                 # there's no need to check whether this holds any values as the schema has already been validated.

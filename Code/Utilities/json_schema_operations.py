@@ -1,14 +1,52 @@
-"""Code to extract default parameters from a JSON schema."""
+"""Code for manipulating JSON schemas."""
 
 # Python imports.
+import operator
 import sys
 
 # Define functions for compatibility.
 if sys.version_info[0] >= 3:
     from functools import reduce
+    basestring = unicode = str
+    iteritems = operator.methodcaller("items")
+else:
+    iteritems = operator.methodcaller("iteritems")
 
 
-def main(schema):
+def change_encoding(jsonObject, encoding="utf-8"):
+    """Convert unicode strings in a JSON object to a given encoding.
+
+    The primary purpose of this is to convert unicode strings generated in Python 2 to ascii (utf-8)
+
+    This will recurse through all levels of the JSON dictionary, and therefore may hit Python's recursion limit.
+    To avoid this use object_hook in the json.load() function instead.
+
+    :param jsonObject:  The JSON object.
+    :type jsonObject:   dict
+    :param encoding:    The encoding to use.
+    :type encoding:     str
+    :return:            The JSON object with all strings encoded as desired.
+    :rtype:             dict
+
+    """
+
+    if isinstance(jsonObject, dict):
+        # If the current part of the JSON object is a dictionary, then encode all its keys and values if needed.
+        return dict(
+            [(change_encoding(key, encoding), change_encoding(value, encoding)) for key, value in iteritems(jsonObject)]
+        )
+    elif isinstance(jsonObject, list):
+        # If the current part of the JSON object is a list, then encode all its elements if needed.
+        return [change_encoding(i, encoding) for i in jsonObject]
+    elif isinstance(jsonObject, unicode):
+        # If you've reached a unicode string then encode.
+        return jsonObject.encode(encoding)
+    else:
+        # You've reached a non-unicode terminus (e.g. an integer or null).
+        return jsonObject
+
+
+def extract_schema_defaults(schema):
     """Extract the default attribute values derived from the types and defaults specified in a JSON schema.
 
     If no user supplied default is present in the schema for a given element, then only a "null" element will get a
@@ -103,7 +141,7 @@ def main(schema):
                 # manipulate the element.
                 pass
             subschema["properties"] = schemaProps[i]
-            subschemaDefaults, defaultExtracted = main(subschema)
+            subschemaDefaults, defaultExtracted = extract_schema_defaults(subschema)
             if defaultExtracted:
                 # A sub-schema has a default, so there is a default value for this (sub-)schema.
                 defaultsFound = True
