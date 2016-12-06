@@ -38,8 +38,8 @@ def change_encoding(jsonObject, encoding="utf-8"):
     elif isinstance(jsonObject, list):
         # If the current part of the JSON object is a list, then encode all its elements if needed.
         return [change_encoding(i, encoding) for i in jsonObject]
-    elif isinstance(jsonObject, unicode):
-        # If you've reached a unicode string then encode.
+    elif isinstance(jsonObject, basestring):
+        # If you've reached a string then encode.
         return jsonObject.encode(encoding)
     else:
         # You've reached a non-unicode terminus (e.g. an integer or null).
