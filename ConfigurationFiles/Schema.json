@@ -45,15 +45,20 @@
               "description": "The numeric index or name of the variable that is used to index the examples.",
               "oneOf": [{"type": "integer"}, {"type": "string"}]
             },
-            "HeaderPresent": {
+            "ExampleHeaderPresent": {
               "default": false,
-              "description": "Whether the first row of the dataset is a header.",
+              "description": "Whether the first row of the file containing the examples is a header.",
               "type": "boolean"
             },
             "Separator": {
               "default": "\t",
               "description": "The separator between variables in the input file.",
               "type": "string"
+            },
+            "TargetHeaderPresent": {
+              "default": false,
+              "description": "Whether the first row of the file containing the targets is a header.",
+              "type": "boolean"
             },
             "VariablesToIgnore": {"$ref": "#/definitions/VariableIndices"}
           }
@@ -65,7 +70,18 @@
           "minLength": 1,
           "type": "array"
         },
-        "Normalise": {
+        "NormaliseExamples": {
+          "description": "Configuration parameters for normalising a dataset.",
+          "type": "object",
+
+          "properties": {
+            "MinMaxScale": {"$ref": "#/definitions/VariableIndices"},
+            "OneOfC": {"$ref": "#/definitions/VariableIndices"},
+            "OneOfC-1": {"$ref": "#/definitions/VariableIndices"},
+            "Standardise": {"$ref": "#/definitions/VariableIndices"}
+          }
+        },
+        "NormaliseTargets": {
           "description": "Configuration parameters for normalising a dataset.",
           "type": "object",
 

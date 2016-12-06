@@ -5,16 +5,23 @@
   "DataPreparation": {
     "DataProperties": {
       "ExampleIDVariable": 0,
-      "HeaderPresent": true,
+      "ExampleHeaderPresent": true,
+      "TargetHeaderPresent": true,
       "Separator": "\t",
-      "VariablesToIgnore": [1, 2, 3, 4, "10:"]
+      "VariablesToIgnore": [1, 2, 3, 4, "2.*", "3.*", "5.*"]
     },
     "DataSplit": [0.7, 0.15, 0.15],
-    "Normalise": {
-      "MinMaxScale": [1, 2, 3, 4, "10:"],
-      "OneOfC": [1, 2, 3, 4, "10:"],
-      "OneOfC-1": [1, 2, 3, 4, "10:"],
-      "Standardise": [1, 2, 3, 4, "10:"]
+    "NormaliseExamples": {
+      "MinMaxScale": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
+      "OneOfC": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
+      "OneOfC-1": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
+      "Standardise": [1, 2, 3, 4, "2.*", "3.*", "5.*"]
+    },
+    "NormaliseTargets": {
+      "MinMaxScale": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
+      "OneOfC": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
+      "OneOfC-1": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
+      "Standardise": [1, 2, 3, 4, "2.*", "3.*", "5.*"]
     },
     "ExamplesPerShard": 10
   }
