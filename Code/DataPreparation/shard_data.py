@@ -8,7 +8,7 @@ import shutil
 import sys
 
 # User imports.
-from Utilities import variable_indices_from_config
+from . import Normaliser
 
 # Globals.
 LOGGER = logging.getLogger(__name__)
@@ -60,15 +60,37 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
 
     dataType = config.get_param(["DataType"])  # Extract the the type of the data.
 
-    # Extract the header (if one is present) and determine each variable's index. Also calculate the number of
-    # variables in the dataset.
-    headersPresent = config.get_param(["DataPreparation", "DataProperties", "HeaderPresent"])[1]
+    # Extract properties of the dataset needed.
+    exampleHeaderPresent = config.get_param(["DataPreparation", "DataProperties", "ExampleHeaderPresent"])[1]
+    targetHeaderPresent = config.get_param(["DataPreparation", "DataProperties", "TargetHeaderPresent"])[1]
     separator = config.get_param(["DataPreparation", "DataProperties", "Separator"])[1]  # Extract the separator string.
-    firstLine = open(fileExamples, 'r').readline().split(separator)
-    header = {}
-    if headersPresent:
-        header = {j: i for i, j in enumerate(firstLine)}
-    numVariables = len(firstLine)  # Number of variables (including the ID variable if there is one).
+
+    # Extract the variables to ignore.
+    varsToIgnore = config.get_param(["DataPreparation", "DataProperties", "VariablesToIgnore"])
+    varsToIgnore = varsToIgnore[1] if varsToIgnore[0] else []
+    exampleID = config.get_param(["DataPreparation", "DataProperties", "ExampleIDVariable"])
+    if exampleID[0]:
+        # If there is an ID for each example, then that 'variable' should be ignored as well.
+        varsToIgnore.append(exampleID[1])
+
+    # Setup the normaliser object.
+    exampleNormVars = config.get_param(["DataPreparation", "NormaliseExamples"])
+    targetNormVars = config.get_param(["DataPreparation", "NormaliseTargets"])
+    normaliser = Normaliser.VectorNormaliser(
+        fileExamples, exampleHeaderPresent=exampleHeaderPresent, fileTargets=fileTargets,
+        targetHeaderPresent=targetHeaderPresent, separator=separator, varsToIgnore=varsToIgnore,
+        exampleNormVars=exampleNormVars[1] if exampleNormVars[0] else None,
+        targetNormVars=targetNormVars[1] if targetNormVars[0] else None
+    )
+
+
+
+
+
+
+
+
+
 
     # ========================================= #
     # Determine Variables Needing Normalisation #
@@ -77,50 +99,6 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     varsOneOfCMin1 = {}
     varsMinMax = {}
     varsStandardise = {}
-    if config.get_param(["DataPreparation", "Normalise"])[0]:
-        # Some variables are supposed to be normalised.
-        LOGGER.info("Now determining how to normalise variables.")
-
-        # Determine categorical normalisations needed.
-        categoricalNormalising = config.get_param(["DataPreparation", "Normalise", "Categorical"])
-        if categoricalNormalising[0]:
-            if categoricalNormalising[1].get("OneOfC"):
-                # Determine variables needing one-of-C normalisation and initialise category information.
-                varsOneOfC = variable_indices_from_config.main(
-                    categoricalNormalising[1]["OneOfC"]["NumericIndices"],
-                    categoricalNormalising[1]["OneOfC"]["VariableNames"],
-                    numVariables, header
-                )
-                varsOneOfC = {i: set() for i in varsOneOfC}
-            if categoricalNormalising[1].get("OneOfC-1"):
-                # Determine variables needing one-of-C-1 normalisation and initialise category information..
-                varsOneOfCMin1 = variable_indices_from_config.main(
-                    categoricalNormalising[1]["OneOfC-1"]["NumericIndices"],
-                    categoricalNormalising[1]["OneOfC-1"]["VariableNames"],
-                    numVariables, header
-                )
-                varsOneOfCMin1 = {i: set() for i in varsOneOfCMin1}
-
-        # Determine numeric normalisations needed.
-        numericNormalising = config.get_param(["DataPreparation", "Normalise", "Numeric"])
-        if numericNormalising[0]:
-            if numericNormalising[1].get("MinMaxScale"):
-                # Determine variables needing min-max normalisation and initialise min and max.
-                varsMinMax = variable_indices_from_config.main(
-                    numericNormalising[1]["MinMaxScale"]["NumericIndices"],
-                    numericNormalising[1]["MinMaxScale"]["VariableNames"],
-                    numVariables, header
-                )
-                varsMinMax = {i: {"Min": sys.maxsize, "Max": -sys.maxsize} for i in varsMinMax}
-            if numericNormalising[1].get("Standardise"):
-                # Determine variables needing standardising and initialise mean, number of examples and squares of
-                # differences from the current mean.
-                varsStandardise = variable_indices_from_config.main(
-                    numericNormalising[1]["Standardise"]["NumericIndices"],
-                    numericNormalising[1]["Standardise"]["VariableNames"],
-                    numVariables, header
-                )
-                varsStandardise = {i: {"Num": 0, "Mean": 0.0, "SumDiffs": 0.0} for i in varsStandardise}
 
     # ====================================================== #
     # Divide the Data and Determine Normalisation Parameters #
@@ -137,7 +115,7 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
             open(fileTempTestExamples, 'w') as fidTestExamples, open(fileTestTargets, 'w') as fidTestTargets, \
             open(fileTempValExamples, 'w') as fidValExamples, open(fileValTargets, 'w') as fidValTargets:
         # Strip the header if one is present.
-        if headersPresent:
+        if exampleHeaderPresent:
             fidExamples.readline()
             fidTargets.readline()
 
@@ -217,24 +195,6 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     # Close the final shard files.
     fidExampleShard.close()
     fidTargetShard.close()
-
-    # ================================= #
-    # Determine the Variables to Ignore #
-    # ================================= #
-    varsToIgnore = config.get_param(["DataPreparation", "DataProperties", "VariablesToIgnore"])
-    if varsToIgnore[1]:
-        # Variables are supposed to be ignored.
-        LOGGER.info("Now extracting the indices of the variables to ignore.")
-        varsToIgnore = variable_indices_from_config.main(
-            varsToIgnore[1]["NumericIndices"], varsToIgnore[1]["VariableNames"], numVariables, header
-        )
-    else:
-        # No variables are being ignored.
-        varsToIgnore = set()
-    exampleID = config.get_param(["DataPreparation", "DataProperties", "ExampleIDVariable"])
-    if exampleID[0]:
-        # If there is an ID for each example, then that 'variable' should be ignored as well.
-        varsToIgnore.add(exampleID[1])
 
     # ============================== #
     # Normalise the Data and Save it #
