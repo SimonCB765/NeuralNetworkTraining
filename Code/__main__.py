@@ -125,6 +125,13 @@ except jsonschema.ValidationError as e:
         "the file or download the original and save it at {:s}.\n{:s}".format(fileDefaultConfig, str(exceptionInfo[1]))
     )
     isErrors = True
+except jsonschema.RefResolutionError as e:
+    exceptionInfo = sys.exc_info()
+    logger.error(
+        "The configuration schema contains an invalid reference. Please correct any changes made to the "
+        "schema or download the original and save it at {:s}.\n{:s}".format(fileConfigSchema, str(exceptionInfo[1]))
+    )
+    isErrors = True
 except LookupError as e:
     logger.exception("Requested encoding {:s} to convert JSON strings to wasn't found.".format(args.encode))
     isErrors = True
@@ -140,14 +147,6 @@ if args.config:
                 config.set_from_json(args.config, fileConfigSchema, args.encode)
             else:
                 config.set_from_json(args.config, fileConfigSchema)
-        except jsonschema.SchemaError as e:
-            exceptionInfo = sys.exc_info()
-            logger.error(
-                "The configuration schema is not a valid JSON schema. Please correct any changes made to the "
-                "schema or download the original and save it at {:s}.\n{:s}".format(
-                    fileConfigSchema, str(exceptionInfo[1]))
-            )
-            isErrors = True
         except jsonschema.ValidationError as e:
             exceptionInfo = sys.exc_info()
             logger.error(
