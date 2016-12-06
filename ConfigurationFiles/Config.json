@@ -7,30 +7,15 @@
       "ExampleIDVariable": 0,
       "HeaderPresent": true,
       "Separator": "\t",
-      "VariablesToIgnore": {
-        "NumericIndices": [1, 2, 3, 4, "10", "15:19"],
-        "VariableNames": ["name1", "1.*", "2.*", "3.*", "5.*"]
-      }
+      "VariablesToIgnore": [1, 2, 3, 4, "10:"]
     },
     "DataSplit": [0.7, 0.15, 0.15],
     "Normalise": {
-      "MinMaxScale": {
-        "NumericIndices": [1, 2, 3, 4, "10:"],
-        "VariableNames": ["name1", "name2"]
-      },
-      "OneOfC": {
-        "NumericIndices": [1, 2, 3, 4, "10:"],
-        "VariableNames": ["name1", "name2"]
-      },
-      "OneOfC-1": {
-        "NumericIndices": [1, 2, 3, 4, "10:"],
-        "VariableNames": ["name1", "name2"]
-      },
-      "Standardise": {
-        "NumericIndices": [1, 2, 3, 4, "10:"],
-        "VariableNames": ["name1", "name2"]
-      }
+      "MinMaxScale": [1, 2, 3, 4, "10:"],
+      "OneOfC": [1, 2, 3, 4, "10:"],
+      "OneOfC-1": [1, 2, 3, 4, "10:"],
+      "Standardise": [1, 2, 3, 4, "10:"]
     },
-    "ExamplesPerShard": 100
+    "ExamplesPerShard": 10
   }
 }

@@ -5,22 +5,15 @@
   "type": "object",
 
   "definitions": {
-    "VariableIndexer": {
-      "description": "A collection of variable indices to use.",
-      "type": "object",
-
-      "properties": {
-        "NumericIndices": {
-          "description": "Numerical indexing of variables (Python range formatting allowed).",
-          "items": {"anyOf": [{"type": "string"}, {"type": "number"}]},
-          "type": "array"
-        },
-        "VariableNames": {
-          "description": "Indexing of variables by their name (these are treated as regular expressions).",
-          "items": {"type": "string"},
-          "type": "array"
-        }
-      }
+    "VariableIndices": {
+      "description": "A collection of variable indices. Strings are treated as variable names and integers as numeric indices.",
+      "items": {
+        "anyOf": [
+          {"type": "string"},
+          {"type": "number"}
+        ]
+      },
+      "type": "array"
     }
   },
 
@@ -62,7 +55,7 @@
               "description": "The separator between variables in the input file.",
               "type": "string"
             },
-            "VariablesToIgnore": {"$ref": "#/definitions/VariableIndexer"}
+            "VariablesToIgnore": {"$ref": "#/definitions/VariableIndices"}
           }
         },
         "DataSplit": {
@@ -77,10 +70,10 @@
           "type": "object",
 
           "properties": {
-            "MinMaxScale": {"$ref": "#/definitions/VariableIndexer"},
-            "OneOfC": {"$ref": "#/definitions/VariableIndexer"},
-            "OneOfC-1": {"$ref": "#/definitions/VariableIndexer"},
-            "Standardise": {"$ref": "#/definitions/VariableIndexer"}
+            "MinMaxScale": {"$ref": "#/definitions/VariableIndices"},
+            "OneOfC": {"$ref": "#/definitions/VariableIndices"},
+            "OneOfC-1": {"$ref": "#/definitions/VariableIndices"},
+            "Standardise": {"$ref": "#/definitions/VariableIndices"}
           }
         },
         "ExamplesPerShard": {
