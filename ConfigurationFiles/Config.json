@@ -13,15 +13,15 @@
     "DataSplit": [0.7, 0.15, 0.15],
     "NormaliseExamples": {
       "MinMaxScale": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
-      "OneOfC": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
-      "OneOfC-1": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
+      "OneOfC": ["2.*", "3.*", "5.*"],
+      "OneOfC-1": ["2.*", "3.*", "5.*"],
       "Standardise": [1, 2, 3, 4, "2.*", "3.*", "5.*"]
     },
     "NormaliseTargets": {
-      "MinMaxScale": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
-      "OneOfC": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
-      "OneOfC-1": [1, 2, 3, 4, "2.*", "3.*", "5.*"],
-      "Standardise": [1, 2, 3, 4, "2.*", "3.*", "5.*"]
+      "MinMaxScale": [],
+      "OneOfC": [],
+      "OneOfC-1": [],
+      "Standardise": []
     },
     "ExamplesPerShard": 10
   }

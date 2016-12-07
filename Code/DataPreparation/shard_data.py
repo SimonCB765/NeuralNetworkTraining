@@ -73,32 +73,41 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
         # If there is an ID for each example, then that 'variable' should be ignored as well.
         varsToIgnore.append(exampleID[1])
 
+    # For both the examples and targets, extract the header (if one is present), determine the number of
+    # variables/targets in the dataset (including an ID variable if one is present) and determine each
+    # variable's/target's index.
+    firstLine = open(fileExamples, 'r').readline().split(separator)
+    exampleHeader = {}
+    if exampleHeaderPresent:
+        exampleHeader = {j: i for i, j in enumerate(firstLine)}
+    numVariables = len(firstLine)
+
+    targetHeader = {}
+    numTargets = 0
+    if fileTargets:
+        firstLine = open(fileTargets, 'r').readline().split(separator)
+        if targetHeaderPresent:
+            targetHeader = {j: i for i, j in enumerate(firstLine)}
+        numTargets = len(firstLine)
+
     # Setup the normaliser object.
     exampleNormVars = config.get_param(["DataPreparation", "NormaliseExamples"])
     targetNormVars = config.get_param(["DataPreparation", "NormaliseTargets"])
     normaliser = Normaliser.VectorNormaliser(
-        fileExamples, exampleHeaderPresent=exampleHeaderPresent, fileTargets=fileTargets,
-        targetHeaderPresent=targetHeaderPresent, separator=separator, varsToIgnore=varsToIgnore,
+        exampleHeader, numVariables, targetHeader=targetHeader, numTargets=numTargets, varsToIgnore=varsToIgnore,
         exampleNormVars=exampleNormVars[1] if exampleNormVars[0] else None,
         targetNormVars=targetNormVars[1] if targetNormVars[0] else None
     )
 
-
-
-
-
-
-
-
-
-
-    # ========================================= #
-    # Determine Variables Needing Normalisation #
-    # ========================================= #
-    varsOneOfC = {}
-    varsOneOfCMin1 = {}
-    varsMinMax = {}
-    varsStandardise = {}
+    # Determine the examples that will be used for training, testing and validation. Pad the
+    # configuration parameters with 0s so that missing test and validation fraction values mean that there are no
+    # examples allocated to those splits.
+    datasetDivisions = config.get_param(["DataPreparation", "DataSplit"])[1]
+    datasetDivisions[len(datasetDivisions):3] = [0] * (3 - len(datasetDivisions))  # Pad with 0s.
+    trainFraction = datasetDivisions[0]
+    testFraction = min(1 - trainFraction, datasetDivisions[1])
+    validationFraction = min(1 - (trainFraction + testFraction), datasetDivisions[2])
+    choices = [trainFraction, trainFraction + testFraction, trainFraction + testFraction + validationFraction]
 
     # ====================================================== #
     # Divide the Data and Determine Normalisation Parameters #
@@ -114,9 +123,10 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     with open(fileExamples, 'r') as fidExamples, open(fileTargets if fileTargets else os.devnull, 'r') as fidTargets, \
             open(fileTempTestExamples, 'w') as fidTestExamples, open(fileTestTargets, 'w') as fidTestTargets, \
             open(fileTempValExamples, 'w') as fidValExamples, open(fileValTargets, 'w') as fidValTargets:
-        # Strip the header if one is present.
+        # Strip header if they're present.
         if exampleHeaderPresent:
             fidExamples.readline()
+        if targetHeaderPresent:
             fidTargets.readline()
 
         # Setup the training set shards.
@@ -130,25 +140,10 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
             os.path.join(dirTrainData, "Shard_{:d}_Target".format(currentFileNumber)), 'w'
         )
 
-        # Determine the fraction of examples to go in each of the train, test and validation splits. Pad the
-        # configuration parameters with 0s so that missing test and validation fraction values mean that there are no
-        # examples allocated to those splits.
-        datasetDivisions = config.get_param(["DataPreparation", "DataSplit"])[1]
-        datasetDivisions[len(datasetDivisions):3] = [0] * (3 - len(datasetDivisions))  # Pad with 0s.
-        trainFraction = datasetDivisions[0]
-        testFraction = min(1 - trainFraction, datasetDivisions[1])
-        validationFraction = min(1 - (trainFraction + testFraction), datasetDivisions[2])
-        choices = [trainFraction, trainFraction + testFraction, trainFraction + testFraction + validationFraction]
-
         # Split the dataset.
         for example, target in izip_longest(fidExamples, fidTargets, fillvalue=''):
-            exVars = example.split(separator)
-
-            # Update categories for categorical variables.
-            for i in varsOneOfC:
-                varsOneOfC[i].add(exVars[i])
-            for i in varsOneOfCMin1:
-                varsOneOfCMin1[i].add(exVars[i])
+            exampleVars = example.split(separator)
+            targetVars = target.split(separator) if fileTargets else []
 
             # Determine which direction this example should go.
             choice = random.random()
@@ -158,16 +153,6 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                 fidExampleShard.write(example)
                 fidTargetShard.write(target)
                 examplesAddedToShard += 1
-
-                # Update numeric normalisation parameters.
-                for i in varsMinMax:
-                    varsMinMax[i]["Max"] = max(varsMinMax[i]["Max"], float(exVars[i]))
-                    varsMinMax[i]["Min"] = min(varsMinMax[i]["Min"], float(exVars[i]))
-                for i in varsStandardise:
-                    varsStandardise[i]["Num"] += 1
-                    delta = float(exVars[i]) - varsStandardise[i]["Mean"]
-                    varsStandardise[i]["Mean"] += delta / varsStandardise[i]["Num"]
-                    varsStandardise[i]["SumDiffs"] += delta * (float(exVars[i]) - varsStandardise[i]["Mean"])
 
                 # Open a new shard file if needed.
                 if examplesAddedToShard == examplesPerShard:
@@ -192,9 +177,18 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
             else:
                 # The example will not go to any of the sets.
                 pass
+
+            # Update the normalisation parameters
+            normaliser.update_norm_params(exampleVars, targetVars, choice[0])
+
     # Close the final shard files.
     fidExampleShard.close()
     fidTargetShard.close()
+
+
+    print(normaliser._exampleNormParams)
+
+
 
     # ============================== #
     # Normalise the Data and Save it #

@@ -24,63 +24,29 @@ else:
 class Normaliser(object):
     """Class for normalising datasets."""
 
-    def __init__(self, fileExamples, exampleHeaderPresent=False, fileTargets=None, targetHeaderPresent=False,
-                 separator='\t', varsToIgnore=None, exampleNormVars=None, targetNormVars=None):
+    def __init__(self, exampleHeader, numVariables, targetHeader=None, numTargets=0, varsToIgnore=None,
+                 exampleNormVars=None, targetNormVars=None):
         """Initialise a Normaliser object."""
 
         # Initialise dataset properties.
-        self._fileExamples = fileExamples
-        self._exampleHeaderPresent = exampleHeaderPresent
         self._exampleHeader = {}  # Mapping from example names to their index.
-        self._numVariables = 0  # Number of variables (including the ID variable if there is one).
-        self._fileTargets = fileTargets
-        self._targetHeaderPresent = exampleHeaderPresent
+        self._numVariables = numVariables  # Number of variables (including the ID variable if there is one).
         self._targetHeader = {}  # Mapping from target names to their index.
-        self._numTargets = 0  # Number of target variables.
-        self._separator = separator
-
-        # For both the examples and targets, extract the header (if one is present), determine the number of
-        # variables/targets in the dataset (including an ID variable if one is present) and determine each
-        # variable's/target's index.
-        firstLine = open(self._fileExamples, 'r').readline().split(self._separator)
-        if self._exampleHeaderPresent:
-            self._exampleHeader = {j: i for i, j in enumerate(firstLine)}
-        self._numVariables = len(firstLine)
-
-        if self._fileTargets:
-            firstLine = open(self._fileTargets, 'r').readline().split(self._separator)
-            if self._targetHeaderPresent:
-                self._targetHeader = {j: i for i, j in enumerate(firstLine)}
-            self._numTargets = len(firstLine)
+        self._numTargets = numTargets  # Number of target variables.
 
         # Determine the variables to ignore.
         self._varsToIgnore = self.determine_indices(varsToIgnore, self._exampleHeader)
 
-        # Extract the example variables to normalise.
-        self._oneOfCParamsExample = self.determine_indices(exampleNormVars.get("OneOfC", []), self._exampleHeader)
-        self._oneOfCParamsExample = {i: set() for i in self._oneOfCParamsExample}
-        self._oneOfCMin1ParamsExample = self.determine_indices(exampleNormVars.get("OneOfC-1", []), self._exampleHeader)
-        self._oneOfCParamsExample = {i: set() for i in self._oneOfCMin1ParamsExample}
-        self._minMaxParamsExample = self.determine_indices(exampleNormVars.get("MinMaxScale", []), self._exampleHeader)
-        self._minMaxParamsExample = {i: {"Min": sys.maxsize, "Max": -sys.maxsize} for i in self._minMaxParamsExample}
-        self._standardiseParamsExample = self.determine_indices(
-            exampleNormVars.get("Standardise", []), self._exampleHeader
-        )
-        self._standardiseParamsExample = \
-            {i: {"Num": 0, "Mean": 0.0, "SumDiffs": 0.0} for i in self._standardiseParamsExample}
-
-        # Extract the target variables to normalise.
-        self._oneOfCParamsTarget = self.determine_indices(exampleNormVars.get("OneOfC", []), self._exampleHeader)
-        self._oneOfCParamsTarget = {i: set() for i in self._oneOfCParamsTarget}
-        self._oneOfCMin1ParamsTarget = self.determine_indices(exampleNormVars.get("OneOfC-1", []), self._exampleHeader)
-        self._oneOfCParamsTarget = {i: set() for i in self._oneOfCMin1ParamsTarget}
-        self._minMaxParamsTarget = self.determine_indices(exampleNormVars.get("MinMaxScale", []), self._exampleHeader)
-        self._minMaxParamsTarget = {i: {"Min": sys.maxsize, "Max": -sys.maxsize} for i in self._minMaxParamsTarget}
-        self._standardiseParamsTarget = self.determine_indices(
-            exampleNormVars.get("Standardise", []), self._exampleHeader
-        )
-        self._standardiseParamsTarget = \
-            {i: {"Num": 0, "Mean": 0.0, "SumDiffs": 0.0} for i in self._standardiseParamsTarget}
+        # Extract the example and target variables to normalise and initialise the normalisation parameters.
+        self._exampleNormVars = {
+            i: self.determine_indices(exampleNormVars.get(i, []), self._exampleHeader) for i in exampleNormVars
+        }
+        self._targetNormVars = {
+            i: self.determine_indices(targetNormVars.get(i, []), self._targetHeader) for i in targetNormVars
+        }
+        self._exampleNormParams = {}
+        self._targetNormParams = {}
+        self.initialise_norm_params()
 
     @staticmethod
     def determine_indices(refList, indexMapping):
@@ -113,14 +79,66 @@ class Normaliser(object):
 
         return nameIndices | numericIndices
 
+    def initialise_norm_params(self):
+        """Initialise the normalisation parameters for the different types of normalisation."""
 
-    def update_parameters(self):
-        """Update the normalisation parameters."""
-        pass
+        # Initialise example normalisation parameters.
+        self._exampleNormParams = {
+            "OneOfC": {i: set() for i in self._exampleNormVars.get("OneOfC", [])},
+            "OneOfC-1": {i: set() for i in self._exampleNormVars.get("OneOfC-1", [])},
+            "MinMaxScale":
+                {i: {"Min": sys.maxsize, "Max": -sys.maxsize} for i in self._exampleNormVars.get("MinMaxScale", [])},
+            "Standardise":
+                {i: {"Num": 0, "Mean": 0.0, "SumDiffs": 0.0} for i in self._exampleNormVars.get("Standardise", [])}
+        }
 
-    def normalise(self, example):
-        """Normalise an example."""
-        pass
+        # Initialise target normalisation parameters.
+        self._targetNormParams = {
+            "OneOfC": {i: set() for i in self._targetNormVars.get("OneOfC", [])},
+            "OneOfC-1": {i: set() for i in self._targetNormVars.get("OneOfC-1", [])},
+            "MinMaxScale":
+                {i: {"Min": sys.maxsize, "Max": -sys.maxsize} for i in self._targetNormVars.get("MinMaxScale", [])},
+            "Standardise":
+                {i: {"Num": 0, "Mean": 0.0, "SumDiffs": 0.0} for i in self._targetNormVars.get("Standardise", [])}
+        }
+
+    def update_norm_params(self, exampleVars, targetVars, isTraining):
+        """Update the target and example normalisation parameters with the data on a single example.
+
+        :param exampleVars:     The instantiations of the example variables.
+        :type exampleVars:      list
+        :param targetVars:      The instantiations of the target variables for this example.
+        :type targetVars:       list
+
+        """
+
+        # Update categories for categorical variables.
+        for i, j in iteritems(self._exampleNormParams["OneOfC"]):
+            j.add(exampleVars[i])
+        for i, j in iteritems(self._targetNormParams["OneOfC"]):
+            j.add(targetVars[i])
+        for i, j in iteritems(self._exampleNormParams["OneOfC-1"]):
+            j.add(exampleVars[i])
+        for i, j in iteritems(self._targetNormParams["OneOfC-1"]):
+            j.add(targetVars[i])
+
+        # Update numeric normalisation parameters.
+        for i, j in iteritems(self._exampleNormParams["MinMaxScale"]):
+            j["Max"] = max(j["Max"], float(exampleVars[i]))
+            j["Min"] = min(j["Min"], float(exampleVars[i]))
+        for i, j in iteritems(self._targetNormParams["MinMaxScale"]):
+            j["Max"] = max(j["Max"], float(targetVars[i]))
+            j["Min"] = min(j["Min"], float(targetVars[i]))
+        for i, j in iteritems(self._exampleNormParams["Standardise"]):
+            j["Num"] += 1
+            delta = float(exampleVars[i]) - j["Mean"]
+            j["Mean"] += delta / j["Num"]
+            j["SumDiffs"] += delta * (float(exampleVars[i]) - j["Mean"])
+        for i, j in iteritems(self._targetNormParams["Standardise"]):
+            j["Num"] += 1
+            delta = float(targetVars[i]) - j["Mean"]
+            j["Mean"] += delta / j["Num"]
+            j["SumDiffs"] += delta * (float(targetVars[i]) - j["Mean"])
 
 
 class SequenceNormaliser(Normaliser):
@@ -130,13 +148,12 @@ class SequenceNormaliser(Normaliser):
 class VectorNormaliser(Normaliser):
     """Class for normalising datasets where each example consists of a single vector."""
 
-    def __init__(self, fileExamples, exampleHeaderPresent=False, fileTargets=None, targetHeaderPresent=False,
-                 separator='\t', varsToIgnore=None, exampleNormVars=None, targetNormVars=None):
+    def __init__(self, exampleHeader, numVariables, targetHeader=None, numTargets=0, varsToIgnore=None,
+                 exampleNormVars=None, targetNormVars=None):
         """Initialise a VectorNormaliser object."""
 
         # Initialise the super class.
         super(VectorNormaliser, self).__init__(
-            fileExamples, exampleHeaderPresent=exampleHeaderPresent, fileTargets=fileTargets,
-            targetHeaderPresent=targetHeaderPresent, separator=separator, varsToIgnore=varsToIgnore,
+            exampleHeader, numVariables, targetHeader=targetHeader, numTargets=numTargets, varsToIgnore=varsToIgnore,
             exampleNormVars=exampleNormVars, targetNormVars=targetNormVars
         )
