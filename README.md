@@ -81,6 +81,10 @@ original element with the referenced key-value pair
 
 Regular expression variales names are intended to be matched from the beginning of the variable's name.
 
+The min max method implemented scales to be between -1 and 1
+
+There should be no overlap between the variables specified as needing normalising or the ones needing normalising and the ones to ignore
+
 - Normalising + how to do it when you've got a dataset too large to fit in memory
     - http://cs231n.github.io/neural-networks-2/
 	- https://visualstudiomagazine.com/articles/2014/01/01/how-to-standardize-data-for-neural-networks.aspx

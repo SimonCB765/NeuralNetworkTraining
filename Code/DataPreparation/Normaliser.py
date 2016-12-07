@@ -5,10 +5,14 @@ Records parameters needed to normalise individual variables and implements norma
 """
 
 # Python imports.
+from collections import OrderedDict
 import logging
 import operator
 import re
 import sys
+
+# 3rd party imports.
+import numpy as np
 
 # Globals.
 LOGGER = logging.getLogger(__name__)
@@ -50,7 +54,8 @@ class Normaliser(object):
         self._targetNormParams = {}
         self.initialise_norm_params()
 
-        print(self._exampleNormVars)
+        # Convert the variables to ignore to a list for numpy array indexing.
+        self._varsToIgnore = list(self._varsToIgnore)
 
     @staticmethod
     def determine_indices(refList, indexMapping):
@@ -88,8 +93,8 @@ class Normaliser(object):
 
         # Initialise example normalisation parameters.
         self._exampleNormParams = {
-            "OneOfC": {i: set() for i in self._exampleNormVars.get("OneOfC", [])},
-            "OneOfC-1": {i: set() for i in self._exampleNormVars.get("OneOfC-1", [])},
+            "OneOfC": {i: OrderedDict() for i in self._exampleNormVars.get("OneOfC", [])},
+            "OneOfC-1": {i: OrderedDict() for i in self._exampleNormVars.get("OneOfC-1", [])},
             "MinMaxScale":
                 {i: {"Min": sys.maxsize, "Max": -sys.maxsize} for i in self._exampleNormVars.get("MinMaxScale", [])},
             "Standardise":
@@ -98,13 +103,88 @@ class Normaliser(object):
 
         # Initialise target normalisation parameters.
         self._targetNormParams = {
-            "OneOfC": {i: set() for i in self._targetNormVars.get("OneOfC", [])},
-            "OneOfC-1": {i: set() for i in self._targetNormVars.get("OneOfC-1", [])},
+            "OneOfC": {i: OrderedDict() for i in self._targetNormVars.get("OneOfC", [])},
+            "OneOfC-1": {i: OrderedDict() for i in self._targetNormVars.get("OneOfC-1", [])},
             "MinMaxScale":
                 {i: {"Min": sys.maxsize, "Max": -sys.maxsize} for i in self._targetNormVars.get("MinMaxScale", [])},
             "Standardise":
                 {i: {"Num": 0, "Mean": 0.0, "SumDiffs": 0.0} for i in self._targetNormVars.get("Standardise", [])}
         }
+
+    def normalise(self, vector, isExample=True):
+        """Normalise an example or target vector.
+
+        :param vector:      The example or target to normalise.
+        :type vector:       list
+        :param isExample:   Whether the vector is an example or target.
+        :type isExample:    bool
+        :return:            The normalised example or target.
+        :rtype:             numpy.array
+
+        """
+
+        # Convert the non-normalised vector to a numpy array of strings.
+        vector = np.array(vector)
+
+        # Mark the variables to ignore as NaNs.
+        vector[self._varsToIgnore] = np.NaN
+
+        # Normalise categorical variables. This requires creating a new vector to represent the categorical value in
+        # the vector, appending this to the end and then masking out the old categorical variable.
+        if isExample:
+            for i, j in iteritems(self._exampleNormParams["OneOfC"]):
+                newCategories = np.full(len(j), -1)
+                newCategories[list(j).index(vector[i])] = 1
+                vector = np.append(vector, newCategories)
+                vector[i] = np.NaN
+            for i, j in iteritems(self._exampleNormParams["OneOfC-1"]):
+                newCategories = np.full(len(j), -1)
+                newCategories[list(j).index(vector[i])] = 1
+                vector = np.append(vector, newCategories[:-1])
+                vector[i] = np.NaN
+        else:
+            for i, j in iteritems(self._targetNormVars["OneOfC"]):
+                newCategories = np.full(len(j), -1)
+                newCategories[list(j).index(vector[i])] = 1
+                vector = np.append(vector, newCategories)
+                vector[i] = np.NaN
+            for i, j in iteritems(self._targetNormVars["OneOfC-1"]):
+                newCategories = np.full(len(j), -1)
+                newCategories[list(j).index(vector[i])] = 1
+                vector = np.append(vector, newCategories[:-1])
+                vector[i] = np.NaN
+
+        # Convert the array to floats.
+        vector = vector.astype(np.float)
+
+        # Perform numeric normalisation.
+        if isExample:
+            for i, j in iteritems(self._exampleNormParams["MinMaxScale"]):
+                maxVal = self._exampleNormParams["MinMaxScale"][i]["Max"]
+                minVal = self._exampleNormParams["MinMaxScale"][i]["Min"]
+                vector[i] = (vector[i] - ((maxVal + minVal) / 2)) / ((maxVal - minVal) / 2)
+            for i, j in iteritems(self._exampleNormParams["Standardise"]):
+                mean = self._exampleNormParams["Standardise"][i]["Mean"]
+                sumDiffs = self._exampleNormParams["Standardise"][i]["SumDiffs"]
+                numExamples = self._exampleNormParams["Standardise"][i]["Num"]
+                variance = sumDiffs / (numExamples - 1)
+                vector[i] = (vector[i] - mean) / np.sqrt(variance)
+        else:
+            for i, j in iteritems(self._targetNormParams["MinMaxScale"]):
+                maxVal = self._targetNormParams["MinMaxScale"][i]["Max"]
+                minVal = self._targetNormParams["MinMaxScale"][i]["Min"]
+                vector[i] = (vector[i] - ((maxVal + minVal) / 2)) / ((maxVal - minVal) / 2)
+            for i, j in iteritems(self._targetNormParams["Standardise"]):
+                mean = self._targetNormParams["Standardise"][i]["Mean"]
+                sumDiffs = self._targetNormParams["Standardise"][i]["SumDiffs"]
+                numExamples = self._targetNormParams["Standardise"][i]["Num"]
+                variance = sumDiffs / (numExamples - 1)
+                vector[i] = (vector[i] - mean) / np.sqrt(variance)
+
+        # Remove all variables with value equal to NaN.
+        vector = vector[~np.isnan(vector)]
+
+        return vector
 
     def update_norm_params(self, exampleVars, targetVars):
         """Update the target and example normalisation parameters with the data on a single example.
@@ -118,13 +198,13 @@ class Normaliser(object):
 
         # Update categories for categorical variables.
         for i, j in iteritems(self._exampleNormParams["OneOfC"]):
-            j.add(exampleVars[i])
+            j[exampleVars[i]] = True
         for i, j in iteritems(self._targetNormParams["OneOfC"]):
-            j.add(targetVars[i])
+            j[exampleVars[i]] = True
         for i, j in iteritems(self._exampleNormParams["OneOfC-1"]):
-            j.add(exampleVars[i])
+            j[exampleVars[i]] = True
         for i, j in iteritems(self._targetNormParams["OneOfC-1"]):
-            j.add(targetVars[i])
+            j[exampleVars[i]] = True
 
         # Update numeric normalisation parameters.
         for i, j in iteritems(self._exampleNormParams["MinMaxScale"]):
@@ -161,3 +241,15 @@ class VectorNormaliser(Normaliser):
             exampleHeader, numVariables, targetHeader=targetHeader, numTargets=numTargets, varsToIgnore=varsToIgnore,
             exampleNormVars=exampleNormVars, targetNormVars=targetNormVars
         )
+
+    def update_norm_params(self, exampleVars, targetVars):
+        """Update the target and example normalisation parameters with the data on a single example.
+
+        :param exampleVars:     The instantiations of the example variables.
+        :type exampleVars:      list
+        :param targetVars:      The instantiations of the target variables for this example.
+        :type targetVars:       list
+
+        """
+
+        super(VectorNormaliser, self).update_norm_params(exampleVars, targetVars)

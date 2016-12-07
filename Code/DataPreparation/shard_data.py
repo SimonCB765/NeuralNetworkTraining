@@ -114,15 +114,13 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     # ====================================================== #
     dirTempTrainData = os.path.join(dirOutput, "TempTrainingData")
     os.makedirs(dirTempTrainData)
-    dirTrainData = os.path.join(dirOutput, "TrainingData")
-    os.makedirs(dirTrainData)
     fileTempTestExamples = os.path.join(dirOutput, "TempTestExamples")
-    fileTestTargets = os.path.join(dirOutput, "TestTargets")
+    fileTempTestTargets = os.path.join(dirOutput, "TempTestTargets")
     fileTempValExamples = os.path.join(dirOutput, "TempValidationExamples")
-    fileValTargets = os.path.join(dirOutput, "ValidationTargets")
+    fileTempValTargets = os.path.join(dirOutput, "TempValidationTargets")
     with open(fileExamples, 'r') as fidExamples, open(fileTargets if fileTargets else os.devnull, 'r') as fidTargets, \
-            open(fileTempTestExamples, 'w') as fidTestExamples, open(fileTestTargets, 'w') as fidTestTargets, \
-            open(fileTempValExamples, 'w') as fidValExamples, open(fileValTargets, 'w') as fidValTargets:
+            open(fileTempTestExamples, 'w') as fidTestExamples, open(fileTempTestTargets, 'w') as fidTestTargets, \
+            open(fileTempValExamples, 'w') as fidValExamples, open(fileTempValTargets, 'w') as fidValTargets:
         # Strip header if they're present.
         if exampleHeaderPresent:
             fidExamples.readline()
@@ -137,7 +135,7 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
             os.path.join(dirTempTrainData, "Shard_{:d}_Example".format(currentFileNumber)), 'w'
         )
         fidTargetShard = open(
-            os.path.join(dirTrainData, "Shard_{:d}_Target".format(currentFileNumber)), 'w'
+            os.path.join(dirTempTrainData, "Shard_{:d}_Target".format(currentFileNumber)), 'w'
         )
 
         # Split the dataset.
@@ -167,7 +165,7 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                         os.path.join(dirTempTrainData, "Shard_{:d}_Example".format(currentFileNumber)), 'w'
                     )
                     fidTargetShard = open(
-                        os.path.join(dirTrainData, "Shard_{:d}_Target".format(currentFileNumber)), 'w'
+                        os.path.join(dirTempTrainData, "Shard_{:d}_Target".format(currentFileNumber)), 'w'
                     )
             elif choice[1]:
                 # The example will go to the test set.
@@ -185,31 +183,56 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     fidExampleShard.close()
     fidTargetShard.close()
 
-
-
     # ============================== #
     # Normalise the Data and Save it #
     # ============================== #
     # Normalise and save the training data.
-    trainingShards = [
+    dirTrainData = os.path.join(dirOutput, "TrainingData")
+    os.makedirs(dirTrainData)
+    trainingShardExamples = [
         (os.path.join(dirTempTrainData, i), os.path.join(dirTrainData, i)) for i in os.listdir(dirTempTrainData)
+        if "Example" in i
         ]
-    for fileTempShard, fileShard in trainingShards:
+    trainingShardTargets = [
+        (os.path.join(dirTempTrainData, i), os.path.join(dirTrainData, i)) for i in os.listdir(dirTempTrainData)
+        if "Target" in i
+        ]
+    for fileTempShard, fileShard in trainingShardExamples:
         with open(fileTempShard, 'r') as fidTempShard, open(fileShard, 'w') as fidShard:
             for example in fidTempShard:
-                exVars = example.strip().split(separator)
+                exampleVars = example.strip().split(separator)
+                normalisedExample = normaliser.normalise(exampleVars)
+    for fileTempShard, fileShard in trainingShardTargets:
+        with open(fileTempShard, 'r') as fidTempShard, open(fileShard, 'w') as fidShard:
+            for target in fidTempShard:
+                targetVars = target.strip().split(separator)
+                normalisedTarget = normaliser.normalise(targetVars, False)
     shutil.rmtree(dirTempTrainData)
 
     # Normalise and save the test data.
     fileTestExamples = os.path.join(dirOutput, "TestExamples")
-    with open(fileTempTestExamples, 'r') as fidTempTest, open(fileTestExamples, 'w') as fidTestExamples:
-        for example in fidTempTest:
-            exVars = example.strip().split(separator)
+    fileTestTargets = os.path.join(dirOutput, "TestTargets")
+    with open(fileTempTestExamples, 'r') as fidTempTestExamples, open(fileTestExamples, 'w') as fidTestExamples:
+        for example in fidTempTestExamples:
+            exampleVars = example.strip().split(separator)
+            normalisedExample = normaliser.normalise(exampleVars)
+    with open(fileTempTestTargets, 'r') as fidTempTestTargets, open(fileTestTargets, 'w') as fidTestTargets:
+        for target in fidTempTestTargets:
+            targetVars = target.strip().split(separator)
+            normalisedTarget = normaliser.normalise(targetVars, False)
     os.remove(fileTempTestExamples)
+    os.remove(fileTempTestTargets)
 
     # Normalise and save the validation data.
     fileValExamples = os.path.join(dirOutput, "ValidationExamples")
-    with open(fileTempValExamples, 'r') as fidTempVal, open(fileValExamples, 'w') as fidValExamples:
-        for example in fidTempVal:
-            exVars = example.strip().split(separator)
+    fileValTargets = os.path.join(dirOutput, "ValidationTargets")
+    with open(fileTempValExamples, 'r') as fidTempValExamples, open(fileValExamples, 'w') as fidValExamples:
+        for example in fidTempValExamples:
+            exampleVars = example.strip().split(separator)
+            normalisedExample = normaliser.normalise(exampleVars)
+    with open(fileTempValTargets, 'r') as fidTempValTargets, open(fileValTargets, 'w') as fidValTargets:
+        for target in fidTempValTargets:
+            targetVars = target.strip().split(separator)
+            normalisedTarget = normaliser.normalise(targetVars, False)
     os.remove(fileTempValExamples)
+    os.remove(fileTempValTargets)
