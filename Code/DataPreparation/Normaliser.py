@@ -102,7 +102,7 @@ class Normaliser(object):
                 {i: {"Num": 0, "Mean": 0.0, "SumDiffs": 0.0} for i in self._targetNormVars.get("Standardise", [])}
         }
 
-    def update_norm_params(self, exampleVars, targetVars, isTraining):
+    def update_norm_params(self, exampleVars, targetVars):
         """Update the target and example normalisation parameters with the data on a single example.
 
         :param exampleVars:     The instantiations of the example variables.

@@ -154,6 +154,9 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                 fidTargetShard.write(target)
                 examplesAddedToShard += 1
 
+                # Update the normalisation parameters
+                normaliser.update_norm_params(exampleVars, targetVars)
+
                 # Open a new shard file if needed.
                 if examplesAddedToShard == examplesPerShard:
                     fidExampleShard.close()
@@ -177,9 +180,6 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
             else:
                 # The example will not go to any of the sets.
                 pass
-
-            # Update the normalisation parameters
-            normaliser.update_norm_params(exampleVars, targetVars, choice[0])
 
     # Close the final shard files.
     fidExampleShard.close()
