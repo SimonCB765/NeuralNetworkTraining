@@ -186,9 +186,6 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     fidTargetShard.close()
 
 
-    print(normaliser._exampleNormParams)
-
-
 
     # ============================== #
     # Normalise the Data and Save it #

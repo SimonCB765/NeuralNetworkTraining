@@ -29,9 +29,9 @@ class Normaliser(object):
         """Initialise a Normaliser object."""
 
         # Initialise dataset properties.
-        self._exampleHeader = {}  # Mapping from example names to their index.
+        self._exampleHeader = exampleHeader  # Mapping from example names to their index.
         self._numVariables = numVariables  # Number of variables (including the ID variable if there is one).
-        self._targetHeader = {}  # Mapping from target names to their index.
+        self._targetHeader = targetHeader  # Mapping from target names to their index.
         self._numTargets = numTargets  # Number of target variables.
 
         # Determine the variables to ignore.
