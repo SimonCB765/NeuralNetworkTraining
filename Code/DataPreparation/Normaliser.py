@@ -39,14 +39,18 @@ class Normaliser(object):
 
         # Extract the example and target variables to normalise and initialise the normalisation parameters.
         self._exampleNormVars = {
-            i: self.determine_indices(exampleNormVars.get(i, []), self._exampleHeader) for i in exampleNormVars
+            i: (self.determine_indices(exampleNormVars.get(i, []), self._exampleHeader) - self._varsToIgnore)
+            for i in exampleNormVars
         }
         self._targetNormVars = {
-            i: self.determine_indices(targetNormVars.get(i, []), self._targetHeader) for i in targetNormVars
+            i: (self.determine_indices(targetNormVars.get(i, []), self._targetHeader) - self._varsToIgnore)
+            for i in targetNormVars
         }
         self._exampleNormParams = {}
         self._targetNormParams = {}
         self.initialise_norm_params()
+
+        print(self._exampleNormVars)
 
     @staticmethod
     def determine_indices(refList, indexMapping):
