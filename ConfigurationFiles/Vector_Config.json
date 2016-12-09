@@ -1,0 +1,31 @@
+{
+  "DataProcessing": {
+    "DataSplit": [0.7, 0.15, 0.15],
+    "Examples": {
+      "HeaderPresent": false,
+      "IDVariable": 0,
+      "Normalise": {
+        "MinMaxScale": [],
+        "OneOfC": [],
+        "OneOfC-1": [],
+        "Standardise": []
+      },
+      "Separator": "\t",
+      "VariablesToIgnore": []
+    },
+    "ExamplesPerShard": 1000,
+    "Target": {
+      "HeaderPresent": false,
+      "IDVariable": 0,
+      "Normalise": {
+        "MinMaxScale": [],
+        "OneOfC": [],
+        "OneOfC-1": [],
+        "Standardise": []
+      },
+      "Separator": "\t",
+      "VariablesToIgnore": []
+    }
+  },
+  "RandomSeed": 0
+}

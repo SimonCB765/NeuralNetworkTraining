@@ -29,20 +29,27 @@ parser.add_argument("input", help="The location of the file containing the input
 # Optional arguments.
 parser.add_argument("-c", "--config",
                     help="The location of the file containing the configuration parameters to use. "
-                         "Default: a file called Config.json in the ConfigurationFiles directory.",
+                         "Default: a file called X_Config.json in the ConfigurationFiles directory where X corresponds"
+                         "to the dataType (image, sequence or vector).",
+                    type=str)
+parser.add_argument("-d", "--dataType",
+                    choices=["img", "seq", "vec"],
+                    default="Vec",
+                    help="The type of the data supplied. This is either an image, sequence or single vector per "
+                         "example. Default: each example is a single vector.",
                     type=str)
 parser.add_argument("-e", "--encode",
                     default=None,
                     help="The encoding to convert strings in the JSON configuration file to. Default: no "
                          "conversion performed.",
                     type=str)
+parser.add_argument("-n", "--noProcess",
+                    action="store_true",
+                    help="Whether the data should be prevented from being processed. Default: data can be processed.")
 parser.add_argument("-o", "--output",
                     help="The location of the directory to save the sharded output to. Default: a top level "
                          "directory called ShardedData.",
                     type=str)
-parser.add_argument("-s", "--shardingDisabled",
-                    action="store_true",
-                    help="Whether sharding should be disabled. Default: sharding enabled.")
 parser.add_argument("-t", "--target",
                     help="The location of the file containing the target values/vectors for each input example. "
                          "Default: target data is not used.",
@@ -57,11 +64,17 @@ parser.add_argument("-w", "--overwrite",
 args = parser.parse_args()
 dirCurrent = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory containing this file.
 dirTop = os.path.abspath(os.path.join(dirCurrent, os.pardir))
-dirOutput = os.path.abspath(os.path.join(dirTop, "Output"))
+dirOutput = os.path.join(dirTop, "Output")
 dirOutput = args.output if args.output else dirOutput
-dirOutputDataPrep = os.path.abspath(os.path.join(dirOutput, "DataProcessing"))
-fileDefaultConfig = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Config.json"))
-fileConfigSchema = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Schema.json"))
+dirOutputDataPrep = os.path.join(dirOutput, "DataProcessing")
+fileDefaultConfig = os.path.join(
+    dirTop, "ConfigurationFiles", "{:s}_Config.json".format(
+        "Image" if args.dataType == "img" else ("Sequence" if args.dataType == "seq" else "Vector")
+    ))
+fileConfigSchema = os.path.join(
+    dirTop, "ConfigurationFiles", "{:s}_Schema.json".format(
+        "Image" if args.dataType == "img" else ("Sequence" if args.dataType == "seq" else "Vector")
+    ))
 isErrors = False  # Whether any errors were found.
 
 # Create the output directory.
@@ -85,7 +98,7 @@ else:
 
 # Create the logger. In order to do this we need to overwrite the value in the configuration information that records
 # the location of the file that the logs are written to.
-fileLoggerConfig = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Loggers.yaml"))
+fileLoggerConfig = os.path.join(dirTop, "ConfigurationFiles", "Loggers.yaml")
 fileLogOutput = os.path.join(dirOutput, "Logs.log")
 logConfigInfo = yaml.load(open(fileLoggerConfig, 'r'))
 logConfigInfo["handlers"]["file"]["filename"] = fileLogOutput
@@ -166,10 +179,18 @@ if isErrors:
 # ================= #
 # Shard the Dataset #
 # ================= #
-if not args.shardingDisabled and config.get_param(["DataProcessing"])[0]:
-    logger.info("Now starting the file sharding.")
-    dataFormat = config.get_param(["DataFormat"])
-    if dataFormat[1] == "Vector":
-        shard_data.shard_vector(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
-    else:
+if args.dataType == "img":
+    # The data is image data.
+    if not args.noProcess and config.get_param(["DataProcessing"])[0]:
+        logger.info("Now starting the processing of the image data.")
+        shard_data.shard_image(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
+elif args.dataType == "seq":
+    # The data is sequence data.
+    if not args.noProcess and config.get_param(["DataProcessing"])[0]:
+        logger.info("Now starting the processing of the sequence data.")
         shard_data.shard_sequence(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
+else:
+    # The data is vector data.
+    if not args.noProcess and config.get_param(["DataProcessing"])[0]:
+        logger.info("Now starting the processing of the vector data.")
+        shard_data.shard_vector(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)

@@ -20,6 +20,23 @@ else:
     from itertools import izip_longest
 
 
+def shard_image(fileExamples, dirOutput, config, fileTargets=None):
+    """Shard a dataset where each example is an image.
+
+    :param fileExamples:    The location of the file containing the dataset of input examples.
+    :type fileExamples:     str
+    :param dirOutput:       The location of the directory to write out the sharded files to.
+    :type dirOutput:        str
+    :param config:          The object containing the configuration parameters for the sharding.
+    :type config:           Configuration.Configuration
+    :param fileTargets:     The location of the file containing the targets of the input examples.
+    :type fileTargets:      str
+
+    """
+
+    pass
+
+
 def shard_sequence(fileExamples, dirOutput, config, fileTargets=None):
     """Shard a dataset where each example is a sequence.
 
