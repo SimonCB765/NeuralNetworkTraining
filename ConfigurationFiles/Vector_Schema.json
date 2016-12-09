@@ -56,7 +56,7 @@
         "minimum": 1,
         "type": "integer"
       },
-      "Target": {"$ref": "#/definitions/DatasetProcessing"}
+      "Targets": {"$ref": "#/definitions/DatasetProcessing"}
     },
 
     "RandomSeed": {

@@ -14,7 +14,7 @@
       "VariablesToIgnore": []
     },
     "ExamplesPerShard": 1000,
-    "Target": {
+    "Targets": {
       "HeaderPresent": false,
       "IDVariable": 0,
       "Normalise": {
