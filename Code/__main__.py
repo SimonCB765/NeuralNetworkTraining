@@ -10,7 +10,7 @@ import sys
 import yaml
 
 # User imports.
-from DataPreparation import shard_data
+from DataProcessing import shard_data
 from Utilities import Configuration
 
 # 3rd party imports.
@@ -59,7 +59,7 @@ dirCurrent = os.path.dirname(os.path.join(os.getcwd(), __file__))  # Directory c
 dirTop = os.path.abspath(os.path.join(dirCurrent, os.pardir))
 dirOutput = os.path.abspath(os.path.join(dirTop, "Output"))
 dirOutput = args.output if args.output else dirOutput
-dirOutputDataPrep = os.path.abspath(os.path.join(dirOutput, "DataPreparation"))
+dirOutputDataPrep = os.path.abspath(os.path.join(dirOutput, "DataProcessing"))
 fileDefaultConfig = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Config.json"))
 fileConfigSchema = os.path.abspath(os.path.join(dirTop, "ConfigurationFiles", "Schema.json"))
 isErrors = False  # Whether any errors were found.
@@ -90,7 +90,7 @@ fileLogOutput = os.path.join(dirOutput, "Logs.log")
 logConfigInfo = yaml.load(open(fileLoggerConfig, 'r'))
 logConfigInfo["handlers"]["file"]["filename"] = fileLogOutput
 logging.config.dictConfig(logConfigInfo)
-logger = logging.getLogger("DataPreparation")
+logger = logging.getLogger("DataProcessing")
 
 # Validate the input example file.
 fileDataset = args.input
@@ -166,7 +166,7 @@ if isErrors:
 # ================= #
 # Shard the Dataset #
 # ================= #
-if not args.shardingDisabled and config.get_param(["DataPreparation"])[0]:
+if not args.shardingDisabled and config.get_param(["DataProcessing"])[0]:
     logger.info("Now starting the file sharding.")
     dataFormat = config.get_param(["DataFormat"])
     if dataFormat[1] == "Vector":
