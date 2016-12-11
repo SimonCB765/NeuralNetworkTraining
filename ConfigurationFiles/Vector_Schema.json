@@ -42,21 +42,24 @@
 
   "properties": {
     "DataProcessing": {
-      "DataSplit": {
-        "default": [0.7, 0.15, 0.15],
-        "description": "How to split the dataset between train, test and validation sets.",
-        "items": {"maximum": 1, "minimum": 0, "type": "number"},
-        "minLength": 1,
-        "type": "array"
-      },
-      "Examples": {"$ref": "#/definitions/DatasetProcessing"},
-      "ExamplesPerShard": {
-        "default": 1000,
-        "description": "The number of examples to save in each shard.",
-        "minimum": 1,
-        "type": "integer"
-      },
-      "Targets": {"$ref": "#/definitions/DatasetProcessing"}
+      "properties": {
+        "DataSplit": {
+          "default": [0.7, 0.15, 0.15],
+          "description": "How to split the dataset between train, test and validation sets.",
+          "items": {"maximum": 1, "minimum": 0, "type": "number"},
+          "maxLength": 3,
+          "minLength": 1,
+          "type": "array"
+        },
+        "Examples": {"$ref": "#/definitions/DatasetProcessing"},
+        "ExamplesPerShard": {
+          "default": 1000,
+          "description": "The number of examples to save in each shard.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "Targets": {"$ref": "#/definitions/DatasetProcessing"}
+      }
     },
 
     "RandomSeed": {
