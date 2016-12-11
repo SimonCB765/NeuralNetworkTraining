@@ -2,12 +2,12 @@
 
 # Python imports.
 import argparse
+import json
 import logging
 import logging.config
 import os
 import shutil
 import sys
-import yaml
 
 # User imports.
 from DataProcessing import shard_data
@@ -98,9 +98,9 @@ else:
 
 # Create the logger. In order to do this we need to overwrite the value in the configuration information that records
 # the location of the file that the logs are written to.
-fileLoggerConfig = os.path.join(dirTop, "ConfigurationFiles", "Loggers.yaml")
+fileLoggerConfig = os.path.join(dirTop, "ConfigurationFiles", "Loggers.json")
 fileLogOutput = os.path.join(dirOutput, "Logs.log")
-logConfigInfo = yaml.load(open(fileLoggerConfig, 'r'))
+logConfigInfo = json.load(open(fileLoggerConfig, 'r'))
 logConfigInfo["handlers"]["file"]["filename"] = fileLogOutput
 logging.config.dictConfig(logConfigInfo)
 logger = logging.getLogger("DataProcessing")
