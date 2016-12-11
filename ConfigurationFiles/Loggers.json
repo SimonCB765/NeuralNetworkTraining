@@ -20,7 +20,7 @@
   },
   "incremental": false,
   "loggers": {
-    "DataPreparation": {
+    "DataProcessing": {
       "handlers": ["console", "file"],
       "level": "DEBUG"
     },
