@@ -20,7 +20,7 @@ import jsonschema
 # ====================== #
 # Create Argument Parser #
 # ====================== #
-parser = argparse.ArgumentParser(description="Prepare a dataset for Tensorflow.",
+parser = argparse.ArgumentParser(description="Run a specified neural network configuration using Tensorflow.",
                                  epilog="For further information see the README.")
 
 # Mandatory arguments.
@@ -34,7 +34,7 @@ parser.add_argument("-c", "--config",
                     type=str)
 parser.add_argument("-d", "--dataType",
                     choices=["img", "seq", "vec"],
-                    default="Vec",
+                    default="vec",
                     help="The type of the data supplied. This is either an image, sequence or single vector per "
                          "example. Default: each example is a single vector.",
                     type=str)
