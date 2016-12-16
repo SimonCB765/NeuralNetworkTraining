@@ -46,8 +46,8 @@ parser.add_argument("-n", "--noProcess",
                     action="store_true",
                     help="Whether the data should be prevented from being processed. Default: data can be processed.")
 parser.add_argument("-o", "--output",
-                    help="The location of the directory to save the sharded output to. Default: a top level "
-                         "directory called ShardedData.",
+                    help="The location of the directory to save the output to. Default: a top level "
+                         "directory called Output.",
                     type=str)
 parser.add_argument("-t", "--target",
                     help="The location of the file containing the target values/vectors for each input example. "
