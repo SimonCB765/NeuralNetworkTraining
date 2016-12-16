@@ -20,7 +20,15 @@
   },
   "incremental": false,
   "loggers": {
+    "__main__": {
+      "handlers": ["console", "file"],
+      "level": "DEBUG"
+    },
     "DataProcessing": {
+      "handlers": ["console", "file"],
+      "level": "DEBUG"
+    },
+    "Libraries": {
       "handlers": ["console", "file"],
       "level": "DEBUG"
     },

@@ -102,7 +102,7 @@ fileLogOutput = os.path.join(dirOutput, "Logs.log")
 logConfigInfo = json.load(open(fileLoggerConfig, 'r'))
 logConfigInfo["handlers"]["file"]["filename"] = fileLogOutput
 logging.config.dictConfig(logConfigInfo)
-logger = logging.getLogger("DataProcessing")
+logger = logging.getLogger("__main__")
 
 # Validate the input example file.
 fileDataset = args.input
