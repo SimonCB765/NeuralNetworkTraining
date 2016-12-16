@@ -3,7 +3,6 @@
 # Python imports.
 import argparse
 import json
-import logging
 import logging.config
 import os
 import shutil
@@ -11,7 +10,7 @@ import sys
 
 # User imports.
 from DataProcessing import shard_data
-from Utilities import Configuration
+from Libraries.JsonschemaManipulation import Configuration
 
 # 3rd party imports.
 import jsonschema
