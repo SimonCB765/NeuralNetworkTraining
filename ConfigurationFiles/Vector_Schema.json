@@ -16,32 +16,45 @@
       "type": "array"
     },
     "DatasetProcessing": {
-      "HeaderPresent": {
-        "default": false,
-        "description": "Whether the first row of the file is a header.",
-        "type": "boolean"
-      },
-      "IDVariable": {
-        "description": "The column number or name of the variable for the values used to index the data.",
-        "oneOf": [{"type": "integer"}, {"type": "string"}]
-      },
-      "Normalise": {
-        "MinMaxScale": {"$ref": "#/definitions/VariableIndices"},
-        "OneOfC": {"$ref": "#/definitions/VariableIndices"},
-        "OneOfC-1": {"$ref": "#/definitions/VariableIndices"},
-        "Standardise": {"$ref": "#/definitions/VariableIndices"}
-      },
-      "Separator": {
-        "default": "\t",
-        "description": "The separator between the variables in the file.",
-        "type": "string"
-      },
-      "VariablesToIgnore": {"$ref": "#/definitions/VariableIndices"}
+      "description": "Parameters for processing the data.",
+      "type": "object",
+
+      "properties": {
+        "HeaderPresent": {
+          "default": false,
+          "description": "Whether the first row of the file is a header.",
+          "type": "boolean"
+        },
+        "IDVariable": {
+          "description": "The column number or name of the variable for the values used to index the data.",
+          "oneOf": [{"type": "integer"}, {"type": "string"}]
+        },
+        "Normalise": {
+          "description": "Parameters indicating which variables should be normalised and how they should be normalised.",
+          "type": "object",
+
+          "properties": {
+            "MinMaxScale": {"$ref": "#/definitions/VariableIndices"},
+            "OneOfC": {"$ref": "#/definitions/VariableIndices"},
+            "OneOfC-1": {"$ref": "#/definitions/VariableIndices"},
+            "Standardise": {"$ref": "#/definitions/VariableIndices"}
+          }
+        },
+        "Separator": {
+          "default": "\t",
+          "description": "The separator between the variables in the file.",
+          "type": "string"
+        },
+        "VariablesToIgnore": {"$ref": "#/definitions/VariableIndices"}
+      }
     }
   },
 
   "properties": {
     "DataProcessing": {
+      "description": "Parameters for processing the data.",
+      "type": "object",
+
       "properties": {
         "DataSplit": {
           "default": [0.7, 0.15, 0.15],
