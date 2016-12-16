@@ -30,7 +30,7 @@ def shard_image(fileExamples, dirOutput, config, fileTargets=None):
     :param dirOutput:       The location of the directory to write out the sharded files to.
     :type dirOutput:        str
     :param config:          The object containing the configuration parameters for the sharding.
-    :type config:           Configuration.Configuration
+    :type config:           JsonschemaManipulation.Configuration
     :param fileTargets:     The location of the file containing the targets of the input examples.
     :type fileTargets:      str
 
@@ -47,7 +47,7 @@ def shard_sequence(fileExamples, dirOutput, config, fileTargets=None):
     :param dirOutput:       The location of the directory to write out the sharded files to.
     :type dirOutput:        str
     :param config:          The object containing the configuration parameters for the sharding.
-    :type config:           Configuration.Configuration
+    :type config:           JsonschemaManipulation.Configuration
     :param fileTargets:     The location of the file containing the targets of the input examples.
     :type fileTargets:      str
 
@@ -64,7 +64,7 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     :param dirOutput:       The location of the directory to write out the sharded files to.
     :type dirOutput:        str
     :param config:          The object containing the configuration parameters for the sharding.
-    :type config:           Configuration.Configuration
+    :type config:           JsonschemaManipulation.Configuration
     :param fileTargets:     The location of the file containing the targets of the input examples.
     :type fileTargets:      str
 
@@ -251,7 +251,7 @@ def _normalise_data_matrix(fileDataset, config, isExamples=True):
     :param fileDataset:     The location of the file containing the dataset.
     :type fileDataset:      str
     :param config:          The object containing the configuration parameters for the sharding.
-    :type config:           Configuration.Configuration
+    :type config:           JsonschemaManipulation.Configuration
     :param isExamples:      Whether the dataset is a dataset of examples or their targets.
     :type isExamples:       bool
     :return:                The normalised dataset.
