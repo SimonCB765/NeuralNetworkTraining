@@ -56,6 +56,11 @@
       "type": "object",
 
       "properties": {
+        "BagOfWords": {
+          "default": false,
+          "description": "Whether the data is in a bag-of-words format.",
+          "type": "boolean"
+        },
         "DataSplit": {
           "default": [0.7, 0.15, 0.15],
           "description": "How to split the dataset between train, test and validation sets.",

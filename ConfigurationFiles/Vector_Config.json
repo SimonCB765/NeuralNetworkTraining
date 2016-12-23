@@ -1,5 +1,6 @@
 {
   "DataProcessing": {
+    "BagOfWords": false,
     "DataSplit": [0.7, 0.15, 0.15],
     "Examples": {
       "HeaderPresent": false,

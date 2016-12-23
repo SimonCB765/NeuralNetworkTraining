@@ -201,6 +201,23 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     fidValidation.close()
 
 
+def shard_vector_bow(fileExamples, dirOutput, config, fileTargets=None):
+    """Shard a dataset where each example is a single vector.
+
+    :param fileExamples:    The location of the file containing the dataset of input examples.
+    :type fileExamples:     str
+    :param dirOutput:       The location of the directory to write out the sharded files to.
+    :type dirOutput:        str
+    :param config:          The object containing the configuration parameters for the sharding.
+    :type config:           JsonschemaManipulation.Configuration
+    :param fileTargets:     The location of the file containing the targets of the input examples.
+    :type fileTargets:      str
+
+    """
+
+    pass
+
+
 def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=value))
 
