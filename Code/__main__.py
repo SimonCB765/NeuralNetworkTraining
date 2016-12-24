@@ -192,7 +192,7 @@ else:
     # The data is vector data.
     if not args.noProcess and config.get_param(["DataProcessing"])[0]:
         logger.info("Now starting the processing of the vector data.")
-        if config.get_param(["BagOfWords"])[1]:
+        if config.get_param(["DataProcessing", "BagOfWords"])[1]:
             shard_data.shard_vector_bow(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
         else:
             shard_data.shard_vector(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
