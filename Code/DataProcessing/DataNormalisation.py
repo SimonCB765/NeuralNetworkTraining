@@ -275,3 +275,5 @@ class VectorNormaliser(DataNormalisation):
         normalisedDatapoint = []
         for i, j in enumerate(datapoint):
             normalisedDatapoint.extend(self._normalisers[i].normalise(j))
+
+        return normalisedDatapoint
