@@ -89,14 +89,14 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
 
     # Create the example data normaliser.
     LOGGER.info("Now creating example data normaliser.")
-    isExamplesBOW = config.get_param(["DataProcessing", "Examples", "BagOfWords"])[1]
+    isExamplesBOW = config.get_param(["ExampleBOW"])[1]
     if isExamplesBOW:
         exampleNormaliser = DataNormalisation.BOWNormaliser(fileExamples, config, dataPurpose="Examples")
     else:
         exampleNormaliser = DataNormalisation.VectorNormaliser(fileExamples, config, dataPurpose="Examples")
 
     # Create the target data normaliser.
-    isTargetsBOW = config.get_param(["DataProcessing", "Targets", "BagOfWords"])[1]
+    isTargetsBOW = config.get_param(["TargetBOW"])[1]
     if fileTargets:
         LOGGER.info("Now creating target data normaliser.")
         if isTargetsBOW:

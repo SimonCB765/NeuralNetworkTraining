@@ -185,11 +185,11 @@ if not args.noProcess and config.get_param(["DataProcessing"])[0]:
     isProcessing = True
 
     # Can only use bag-of-words data when there is a header present.
-    isExamplesBOW = config.get_param(["DataProcessing", "Examples", "BagOfWords"])[1]
+    isExamplesBOW = config.get_param(["ExampleBOW"])[1]
     if isExamplesBOW:
         logger.info("The example data is bag-of-words, so the data is treated as having a header.")
         config.set_param(["DataProcessing", "Examples", "HeaderPresent"], True, overwrite=True)
-    isTargetsBOW = config.get_param(["DataProcessing", "Targets", "BagOfWords"])[1]
+    isTargetsBOW = config.get_param(["TargetBOW"])[1]
     if isTargetsBOW:
         logger.info("The target data is bag-of-words, so the data is treated as having a header.")
         config.set_param(["DataProcessing", "Targets", "HeaderPresent"], True, overwrite=True)

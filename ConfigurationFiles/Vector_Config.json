@@ -2,7 +2,6 @@
   "DataProcessing": {
     "DataSplit": [0.7, 0.15, 0.15],
     "Examples": {
-      "BagOfWords": false,
       "HeaderPresent": false,
       "IDVariable": 0,
       "Normalise": {
@@ -16,7 +15,6 @@
     },
     "ExamplesPerShard": 1000,
     "Targets": {
-      "BagOfWords": false,
       "HeaderPresent": false,
       "IDVariable": 0,
       "Normalise": {
@@ -29,5 +27,7 @@
       "VariablesToIgnore": []
     }
   },
+  "ExampleBOW": false,
+  "TargetBOW": false,
   "RandomSeed": 0
 }

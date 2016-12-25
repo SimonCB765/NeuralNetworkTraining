@@ -20,11 +20,6 @@
       "type": "object",
 
       "properties": {
-        "BagOfWords": {
-          "default": false,
-          "description": "Whether the data is in a bag-of-words format.",
-          "type": "boolean"
-        },
         "HeaderPresent": {
           "default": false,
           "description": "Whether the first row of the file is a header.",
@@ -78,6 +73,17 @@
         },
         "Targets": {"$ref": "#/definitions/DatasetProcessing"}
       }
+    },
+
+    "ExampleBOW": {
+      "default": false,
+      "description": "Whether the example data is in a bag-of-words format.",
+      "type": "boolean"
+    },
+    "TargetBOW": {
+      "default": false,
+      "description": "Whether the target data is in a bag-of-words format.",
+      "type": "boolean"
     },
 
     "RandomSeed": {
