@@ -31,6 +31,48 @@ class BaseNormalisation(object):
         pass
 
 
+class CategoricalNorm(BaseNormalisation):
+    """Class for normalising categorical variables."""
+
+    def __init__(self):
+        """Initialise a one-of-C normaliser."""
+
+        self._valueCount = 0
+        self._valueMapping = {}
+
+    def get_categories(self):
+        """Get the categories that the variable takes.
+
+        :return:    The categories that the variables takes sorted in the same order that the normalisation outputs.
+        :rtype:     list
+
+        """
+
+        return sorted(self._valueMapping)
+
+    def get_num_dummies(self):
+        """Get the number of dummy variables used to represent this variable.
+
+        :return:    The number of dummy variables used.
+        :rtype:     int
+
+        """
+
+        return self._valueCount if self._valueCount > 2 else 1
+
+    def update(self, value):
+        """Update the parameters used for the normalisation.
+
+        :param value:   The value to use in the update.
+        :type value:    str
+
+        """
+
+        if value not in self._valueMapping:
+            self._valueMapping[value] = self._valueCount
+            self._valueCount += 1
+
+
 class IgnoreVariable(BaseNormalisation):
     """Class for ignoring a variable."""
 
@@ -82,14 +124,8 @@ class MinMaxNorm(BaseNormalisation):
         self._min = min(self._min, value)
 
 
-class OneOfC(BaseNormalisation):
+class OneOfC(CategoricalNorm):
     """Class for performing one-of-C normalisation."""
-
-    def __init__(self):
-        """Initialise a one-of-C normaliser."""
-
-        self._valueCount = 0
-        self._valueMapping = {}
 
     def normalise(self, value):
         """Normalise a variable that is meant to be one-of-C normalised.
@@ -108,27 +144,9 @@ class OneOfC(BaseNormalisation):
             # If there are more than two categories, then return one value for each category.
             return [(1 if i == value else -1) for i in sorted(self._valueMapping)]
 
-    def update(self, value):
-        """Update the parameters used for the normalisation.
 
-        :param value:   The value to use in the update.
-        :type value:    str
-
-        """
-
-        if value not in self._valueMapping:
-            self._valueMapping[value] = self._valueCount
-            self._valueCount += 1
-
-
-class OneOfCMin1(BaseNormalisation):
+class OneOfCMin1(CategoricalNorm):
     """Class for performing one-of-(C-1) normalisation."""
-
-    def __init__(self):
-        """Initialise a one-of-(C-1) normaliser."""
-
-        self._valueCount = 0
-        self._valueMapping = {}
 
     def normalise(self, value):
         """Normalise a variable that is meant to be one-of-(C-1) normalised.
@@ -146,18 +164,6 @@ class OneOfCMin1(BaseNormalisation):
         else:
             # If there are more than two categories, then return one less value than the number of categories.
             return [(1 if i == value else -1) for i in sorted(self._valueMapping)[:-1]]
-
-    def update(self, value):
-        """Update the parameters used for the normalisation.
-
-        :param value:   The value to use in the update.
-        :type value:    str
-
-        """
-
-        if value not in self._valueMapping:
-            self._valueMapping[value] = self._valueCount
-            self._valueCount += 1
 
 
 class Standardisation(BaseNormalisation):

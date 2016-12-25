@@ -178,21 +178,35 @@ if isErrors:
 # ================= #
 # Shard the Dataset #
 # ================= #
+
+# Determine whether data processing is to take place.
+isProcessing = False
+if not args.noProcess and config.get_param(["DataProcessing"])[0]:
+    isProcessing = True
+
+    # Can only use bag-of-words data when there is a header present.
+    isExamplesBOW = config.get_param(["DataProcessing", "Examples", "BagOfWords"])[1]
+    if isExamplesBOW:
+        logger.info("The example data is bag-of-words, so the data is treated as having a header.")
+        config.set_param(["DataProcessing", "Examples", "HeaderPresent"], True, overwrite=True)
+    isTargetsBOW = config.get_param(["DataProcessing", "Targets", "BagOfWords"])[1]
+    if isTargetsBOW:
+        logger.info("The target data is bag-of-words, so the data is treated as having a header.")
+        config.set_param(["DataProcessing", "Targets", "HeaderPresent"], True, overwrite=True)
+
+# Perform the sharding.
 if args.dataType == "img":
     # The data is image data.
-    if not args.noProcess and config.get_param(["DataProcessing"])[0]:
+    if isProcessing:
         logger.info("Now starting the processing of the image data.")
         shard_data.shard_image(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
 elif args.dataType == "seq":
     # The data is sequence data.
-    if not args.noProcess and config.get_param(["DataProcessing"])[0]:
+    if isProcessing:
         logger.info("Now starting the processing of the sequence data.")
         shard_data.shard_sequence(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
 else:
     # The data is vector data.
-    if not args.noProcess and config.get_param(["DataProcessing"])[0]:
+    if isProcessing:
         logger.info("Now starting the processing of the vector data.")
-        if config.get_param(["DataProcessing", "BagOfWords"])[1]:
-            shard_data.shard_vector_bow(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
-        else:
-            shard_data.shard_vector(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
+        shard_data.shard_vector(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)

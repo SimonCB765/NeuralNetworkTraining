@@ -89,12 +89,20 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
 
     # Create the example data normaliser.
     LOGGER.info("Now creating example data normaliser.")
-    exampleNormaliser = DataNormalisation.VectorNormaliser(fileExamples, config, isExamples=True)
+    isExamplesBOW = config.get_param(["DataProcessing", "Examples", "BagOfWords"])[1]
+    if isExamplesBOW:
+        exampleNormaliser = DataNormalisation.BOWNormaliser(fileExamples, config, dataPurpose="Examples")
+    else:
+        exampleNormaliser = DataNormalisation.VectorNormaliser(fileExamples, config, dataPurpose="Examples")
 
     # Create the target data normaliser.
+    isTargetsBOW = config.get_param(["DataProcessing", "Targets", "BagOfWords"])[1]
     if fileTargets:
         LOGGER.info("Now creating target data normaliser.")
-        targetNormaliser = DataNormalisation.VectorNormaliser(fileTargets, config, isExamples=False)
+        if isTargetsBOW:
+            targetNormaliser = DataNormalisation.BOWNormaliser(fileTargets, config, dataPurpose="Targets")
+        else:
+            targetNormaliser = DataNormalisation.VectorNormaliser(fileTargets, config, dataPurpose="Targets")
     else:
         targetNormaliser = DataNormalisation.BaseNormaliser()
 
@@ -141,8 +149,16 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                         # The Features protocol buffer contains a list of features, which are one of either a
                         # bytes_list, float_list or int64_list.
                         feature={
-                            "Example": _float_feature(exampleDatapoint),
-                            "Target": _float_feature(targetDatapoint)
+                            "Example": _bytes_feature(exampleDatapoint[1:]) if isExamplesBOW else \
+                                _float_feature(exampleDatapoint),
+                            "NumExampleVars": _int64_feature(
+                                [exampleDatapoint[0]] if isExamplesBOW else [len(exampleDatapoint)]
+                            ),
+                            "NumTargetVars": _int64_feature(
+                                [targetDatapoint[0]] if isTargetsBOW else [len(targetDatapoint)]
+                            ),
+                            "Target": _bytes_feature(targetDatapoint[1:]) if isTargetsBOW else \
+                                _float_feature(targetDatapoint)
                         }
                     )
                 )
@@ -169,8 +185,16 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                         # The Features protocol buffer contains a list of features, which are one of either a
                         # bytes_list, float_list or int64_list.
                         feature={
-                            "Example": _float_feature(exampleDatapoint),
-                            "Target": _float_feature(targetDatapoint)
+                            "Example": _bytes_feature(exampleDatapoint[1:]) if isExamplesBOW else \
+                                _float_feature(exampleDatapoint),
+                            "NumExampleVars": _int64_feature(
+                                [exampleDatapoint[0]] if isExamplesBOW else [len(exampleDatapoint)]
+                            ),
+                            "NumTargetVars": _int64_feature(
+                                [targetDatapoint[0]] if isTargetsBOW else [len(targetDatapoint)]
+                            ),
+                            "Target": _bytes_feature(targetDatapoint[1:]) if isTargetsBOW else \
+                                _float_feature(targetDatapoint)
                         }
                     )
                 )
@@ -187,8 +211,16 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                         # The Features protocol buffer contains a list of features, which are one of either a
                         # bytes_list, float_list or int64_list.
                         feature={
-                            "Example": _float_feature(exampleDatapoint),
-                            "Target": _float_feature(targetDatapoint)
+                            "Example": _bytes_feature(exampleDatapoint[1:]) if isExamplesBOW else \
+                                _float_feature(exampleDatapoint),
+                            "NumExampleVars": _int64_feature(
+                                [exampleDatapoint[0]] if isExamplesBOW else [len(exampleDatapoint)]
+                            ),
+                            "NumTargetVars": _int64_feature(
+                                [targetDatapoint[0]] if isTargetsBOW else [len(targetDatapoint)]
+                            ),
+                            "Target": _bytes_feature(targetDatapoint[1:]) if isTargetsBOW else \
+                                _float_feature(targetDatapoint)
                         }
                     )
                 )
@@ -201,23 +233,6 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
     fidTrainingShard.close()
     fidTest.close()
     fidValidation.close()
-
-
-def shard_vector_bow(fileExamples, dirOutput, config, fileTargets=None):
-    """Shard a dataset where each example is a single vector.
-
-    :param fileExamples:    The location of the file containing the dataset of input examples.
-    :type fileExamples:     str
-    :param dirOutput:       The location of the directory to write out the sharded files to.
-    :type dirOutput:        str
-    :param config:          The object containing the configuration parameters for the sharding.
-    :type config:           JsonschemaManipulation.Configuration
-    :param fileTargets:     The location of the file containing the targets of the input examples.
-    :type fileTargets:      str
-
-    """
-
-    pass
 
 
 def _bytes_feature(value):

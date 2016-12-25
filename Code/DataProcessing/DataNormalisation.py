@@ -35,22 +35,22 @@ class BaseNormaliser(object):
 class DataNormalisation(BaseNormaliser):
     """Class for normalising datasets."""
 
-    def __init__(self, fileDataset, config, isExamples=True):
+    def __init__(self, fileDataset, config, dataPurpose="Examples"):
         """Initialise a Normaliser object
 
         :param fileDataset:     The location of the file containing the dataset of to normalise.
         :type fileDataset:      str
         :param config:          The object containing the configuration parameters for the sharding.
         :type config:           JsonschemaManipulation.Configuration
-        :param isExamples:      Whether the dataset is a dataset of examples or their targets.
-        :type isExamples:       bool
+        :param dataPurpose:     The type of data in the dataset (either "Examples" or "Targets").
+        :type dataPurpose:      str
 
         """
 
         super(DataNormalisation, self).__init__()
 
         # Set whether examples or targets are being extracted.
-        self._dataPurpose = "Examples" if isExamples else "Targets"
+        self._dataPurpose = dataPurpose
 
         # Extract properties of the dataset.
         self._separator = config.get_param(["DataProcessing", self._dataPurpose, "Separator"])[1]
@@ -133,26 +133,26 @@ class DataNormalisation(BaseNormaliser):
 class BOWNormaliser(DataNormalisation):
     """Class for normalising bag-of-words datasets."""
 
-    def __init__(self, fileDataset, config, isExamples=True):
+    def __init__(self, fileDataset, config, dataPurpose=True):
         """Initialise a bag-of-words Normaliser object
 
         :param fileDataset:     The location of the file containing the dataset of to normalise.
         :type fileDataset:      str
         :param config:          The object containing the configuration parameters for the sharding.
         :type config:           JsonschemaManipulation.Configuration
-        :param isExamples:      Whether the dataset is a dataset of examples or their targets.
-        :type isExamples:       bool
+        :param dataPurpose:     The type of data in the dataset (either "Examples" or "Targets").
+        :type dataPurpose:      str
 
         """
 
         # Initialise the superclass.
-        super(BOWNormaliser, self).__init__(fileDataset, config, isExamples)
+        super(BOWNormaliser, self).__init__(fileDataset, config, dataPurpose)
 
         # Setup the normalisation classes.
         self._normalisers = {}
         baseNormaliser = Normalisers.BaseNormalisation()
         ignoreVarNorm = Normalisers.IgnoreVariable()
-        for i in enumerate(self._header):
+        for i in self._header:
             if i in self._varsToIgnore:
                 self._normalisers[i] = ignoreVarNorm
             elif i in self._minMaxNormVars:
@@ -179,24 +179,59 @@ class BOWNormaliser(DataNormalisation):
                     varName, varVal = i.split(':')
                     self._normalisers[varName].update(varVal)
 
+        # Determine new variable indices.
+        self._keptVariables = {}
+        self._numVariables = 0
+        for i in self._header:
+            if i not in self._varsToIgnore:
+                if i in self._oneOfCVars or i in self._oneOfCMin1Vars:
+                    self._keptVariables[i] = []
+                    for _ in range(self._normalisers[i].get_num_dummies()):
+                        self._keptVariables[i].append(self._numVariables)
+                        self._numVariables += 1
+                else:
+                    self._keptVariables[i] = [self._numVariables]
+                    self._numVariables += 1
+
+    def normalise(self, datapoint):
+        """Normalise a datapoint's values.
+
+        :param datapoint:   The datapoint needing its values normalised.
+        :type datapoint:    list
+        :return:            The normalised datapoint.
+        :rtype:             list
+
+        """
+
+        normalisedDatapoint = [self._numVariables]
+        for i in datapoint:
+            varName, varVal = i.split(':')
+            varIndices = self._keptVariables.get(varName, [])
+            varNormVals = self._normalisers[varName].normalise(varVal)
+            normalisedDatapoint.extend(
+                [("{:d}:{:f}".format(i[0], i[1])).encode("utf_8") for i in zip(varIndices, varNormVals)]
+            )
+
+        return normalisedDatapoint
+
 
 class VectorNormaliser(DataNormalisation):
     """Class for normalising vectors."""
 
-    def __init__(self, fileDataset, config, isExamples=True):
+    def __init__(self, fileDataset, config, dataPurpose=True):
         """Initialise a vector Normaliser object
 
         :param fileDataset:     The location of the file containing the dataset of to normalise.
         :type fileDataset:      str
         :param config:          The object containing the configuration parameters for the sharding.
         :type config:           JsonschemaManipulation.Configuration
-        :param isExamples:      Whether the dataset is a dataset of examples or their targets.
-        :type isExamples:       bool
+        :param dataPurpose:     The type of data in the dataset (either "Examples" or "Targets").
+        :type dataPurpose:      str
 
         """
 
         # Initialise the superclass.
-        super(VectorNormaliser, self).__init__(fileDataset, config, isExamples)
+        super(VectorNormaliser, self).__init__(fileDataset, config, dataPurpose)
 
         # Setup the normalisation classes.
         self._normalisers = {}
@@ -240,6 +275,3 @@ class VectorNormaliser(DataNormalisation):
         normalisedDatapoint = []
         for i, j in enumerate(datapoint):
             normalisedDatapoint.extend(self._normalisers[i].normalise(j))
-
-        print(type(datapoint), datapoint)
-        print(normalisedDatapoint)

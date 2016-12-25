@@ -1,0 +1,11 @@
+ID	VarFloat	VarCat1	VarInt1	VarInt2	VarCat2
+ID:0	VarFloat:2.22	VarCat1:A	VarInt1:233	VarInt2:56	VarCat2:01
+ID:1	VarFloat:20.52	VarCat1:C	VarInt1:191	VarInt2:46	VarCat2:01
+ID:2	VarFloat:12.54	VarCat1:C	VarInt1:299	VarInt2:60	VarCat2:10
+ID:3	VarFloat:24.03	VarCat1:C	VarInt1:260	VarInt2:58	VarCat2:01
+ID:4	VarFloat:20.10	VarCat1:B	VarInt1:209	VarInt2:50	VarCat2:01
+ID:5	VarFloat:6.96	VarCat1:A	VarInt1:283	VarInt2:80	VarCat2:10
+ID:6	VarFloat:4.08	VarCat1:B	VarInt1:191	VarInt2:66	VarCat2:01
+ID:7	VarFloat:6.37	VarCat1:C	VarInt1:267	VarInt2:78	VarCat2:10
+ID:8	VarFloat:18.85	VarCat1:A	VarInt1:239	VarInt2:70	VarCat2:10
+ID:9	VarFloat:2.89	VarCat1:A	VarInt1:277	VarInt2:72	VarCat2:01
