@@ -149,16 +149,16 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                         # The Features protocol buffer contains a list of features, which are one of either a
                         # bytes_list, float_list or int64_list.
                         feature={
-                            "Example": _bytes_feature(exampleDatapoint[1:]) if isExamplesBOW else \
-                                _float_feature(exampleDatapoint),
+                            "Example": _float_feature(exampleDatapoint[2] if isExamplesBOW else exampleDatapoint),
+                            "ExampleIndices": _int64_feature(exampleDatapoint[1] if isExamplesBOW else []),
                             "NumExampleVars": _int64_feature(
                                 [exampleDatapoint[0]] if isExamplesBOW else [len(exampleDatapoint)]
                             ),
+                            "Target": _float_feature(targetDatapoint[2] if isTargetsBOW else targetDatapoint),
+                            "TargetIndices": _int64_feature(targetDatapoint[1] if isTargetsBOW else []),
                             "NumTargetVars": _int64_feature(
                                 [targetDatapoint[0]] if isTargetsBOW else [len(targetDatapoint)]
-                            ),
-                            "Target": _bytes_feature(targetDatapoint[1:]) if isTargetsBOW else \
-                                _float_feature(targetDatapoint)
+                            )
                         }
                     )
                 )
@@ -185,16 +185,16 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                         # The Features protocol buffer contains a list of features, which are one of either a
                         # bytes_list, float_list or int64_list.
                         feature={
-                            "Example": _bytes_feature(exampleDatapoint[1:]) if isExamplesBOW else \
-                                _float_feature(exampleDatapoint),
+                            "Example": _float_feature(exampleDatapoint[2] if isExamplesBOW else exampleDatapoint),
+                            "ExampleIndices": _int64_feature(exampleDatapoint[1] if isExamplesBOW else []),
                             "NumExampleVars": _int64_feature(
                                 [exampleDatapoint[0]] if isExamplesBOW else [len(exampleDatapoint)]
                             ),
+                            "Target": _float_feature(targetDatapoint[2] if isTargetsBOW else targetDatapoint),
+                            "TargetIndices": _int64_feature(targetDatapoint[1] if isTargetsBOW else []),
                             "NumTargetVars": _int64_feature(
                                 [targetDatapoint[0]] if isTargetsBOW else [len(targetDatapoint)]
-                            ),
-                            "Target": _bytes_feature(targetDatapoint[1:]) if isTargetsBOW else \
-                                _float_feature(targetDatapoint)
+                            )
                         }
                     )
                 )
@@ -211,16 +211,16 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
                         # The Features protocol buffer contains a list of features, which are one of either a
                         # bytes_list, float_list or int64_list.
                         feature={
-                            "Example": _bytes_feature(exampleDatapoint[1:]) if isExamplesBOW else \
-                                _float_feature(exampleDatapoint),
+                            "Example": _float_feature(exampleDatapoint[2] if isExamplesBOW else exampleDatapoint),
+                            "ExampleIndices": _int64_feature(exampleDatapoint[1] if isExamplesBOW else []),
                             "NumExampleVars": _int64_feature(
                                 [exampleDatapoint[0]] if isExamplesBOW else [len(exampleDatapoint)]
                             ),
+                            "Target": _float_feature(targetDatapoint[2] if isTargetsBOW else targetDatapoint),
+                            "TargetIndices": _int64_feature(targetDatapoint[1] if isTargetsBOW else []),
                             "NumTargetVars": _int64_feature(
                                 [targetDatapoint[0]] if isTargetsBOW else [len(targetDatapoint)]
-                            ),
-                            "Target": _bytes_feature(targetDatapoint[1:]) if isTargetsBOW else \
-                                _float_feature(targetDatapoint)
+                            )
                         }
                     )
                 )

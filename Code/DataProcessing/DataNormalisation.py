@@ -203,16 +203,16 @@ class BOWNormaliser(DataNormalisation):
 
         """
 
-        normalisedDatapoint = [self._numVariables]
+        normalisedDatapoint = []
+        indices = []
         for i in datapoint:
             varName, varVal = i.split(':')
             varIndices = self._keptVariables.get(varName, [])
+            indices.extend(varIndices)
             varNormVals = self._normalisers[varName].normalise(varVal)
-            normalisedDatapoint.extend(
-                [("{:d}:{:f}".format(i[0], i[1])).encode("utf_8") for i in zip(varIndices, varNormVals)]
-            )
+            normalisedDatapoint.extend(varNormVals)
 
-        return normalisedDatapoint
+        return [self._numVariables, indices, normalisedDatapoint]
 
 
 class VectorNormaliser(DataNormalisation):
