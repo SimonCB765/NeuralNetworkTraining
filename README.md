@@ -4,6 +4,7 @@
 2. [Data Processing](#data-processing)
     1. [Usage](#data-proc-usage)
     2. [Configuration File Formats](#data-proc-configuration-file-formats)
+    3. [References](#data-proc-refs)
 
 <a name="overview"></a>
 # Overview
@@ -109,6 +110,15 @@ DataFormat - stitch rows of the input file together for sequences, treat rows in
 - ColumnsToIgnore - list of the columns to not include in the data (i.e. stick the ID column in this to not keep it as data), strings will be interpreted as column names and integers as column indices (0 based), names not matchig column headings and indices too large are just ignored (with a warning output)
 - HeaderPresent - true or false, header is taken to be first line in file with one column name per data column
 - IDColumn - number for a column index (0 based) or string for column name (must have a header present), assumed to be no ID column, strings not matching a column heading and indices to large cause the program to abort and output a warning
+
+
+<a name="data-proc-refs"></a>
+## References
+https://www.tensorflow.org/versions/r0.12/how_tos/reading_data/index.html
+http://stackoverflow.com/a/36927790
+http://stackoverflow.com/a/34258214
+http://stackoverflow.com/a/34372717
+https://indico.io/blog/tensorflow-data-inputs-part1-placeholders-protobufs-queues/
 
 ### Vector Example
 
