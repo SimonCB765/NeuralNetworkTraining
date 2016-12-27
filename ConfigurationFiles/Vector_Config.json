@@ -2,7 +2,7 @@
   "DataProcessing": {
     "DataSplit": [0.7, 0.15, 0.15],
     "Examples": {
-      "HeaderPresent": false,
+      "HeaderPresent": true,
       "IDVariable": 0,
       "Normalise": {
         "MinMaxScale": [],
@@ -26,6 +26,10 @@
       "Separator": "\t",
       "VariablesToIgnore": []
     }
+  },
+  "NetworkTraining": {
+    "BatchSize": 32,
+    "NumberEpochs": 10
   },
   "ExampleBOW": false,
   "TargetBOW": false,

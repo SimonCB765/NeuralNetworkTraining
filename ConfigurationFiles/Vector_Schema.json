@@ -75,6 +75,58 @@
       }
     },
 
+    "NetworkTraining": {
+      "description": "Parameters for training the network.",
+      "type": "object",
+
+      "properties": {
+        "BatchSize": {
+          "default": 32,
+          "description": "The batch size to use in the training.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "NumberEpochs": {
+          "default": 10,
+          "description": "The number of epochs to use in the training.",
+          "minimum": 1,
+          "type": "integer"
+        }
+      }
+    },
+
+    "TensorflowParams": {
+      "description": "Parameters for tensorflow-specific functions.",
+      "type": "object",
+
+      "properties": {
+        "BatcherCapacity": {
+          "default": 5000,
+          "description": "The maximum number of elements in the batching queue.",
+          "minimum": 1000,
+          "type": "integer"
+        },
+        "BatcherMinAfterDequeue": {
+          "default": 1000,
+          "description": "The minimum number of elements that must be in the batcher queue after a dequeue.",
+          "minimum": 100,
+          "type": "integer"
+        },
+        "FileQueueCapacity": {
+          "default": 32,
+          "description": "The capacity of the node that queues shuffled filenames for the input pipeline.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "NumberThreads": {
+          "default": 2,
+          "description": "The number of threads to use in the batching.",
+          "minimum": 1,
+          "type": "integer"
+        }
+      }
+    },
+
     "ExampleBOW": {
       "default": false,
       "description": "Whether the example data is in a bag-of-words format.",
