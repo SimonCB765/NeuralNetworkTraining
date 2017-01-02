@@ -11,6 +11,7 @@ import sys
 # User imports.
 from DataProcessing import shard_data
 from Libraries.JsonschemaManipulation import Configuration
+import Network
 
 # 3rd party imports.
 import jsonschema
@@ -23,7 +24,7 @@ parser = argparse.ArgumentParser(description="Run a specified neural network con
                                  epilog="For further information see the README.")
 
 # Mandatory arguments.
-parser.add_argument("input", help="The location of the file containing the input examples.")
+parser.add_argument("input", help="The location of the file/directory containing the data to use.")
 
 # Optional arguments.
 parser.add_argument("-c", "--config",
@@ -104,18 +105,6 @@ logConfigInfo["handlers"]["file"]["filename"] = fileLogOutput
 logging.config.dictConfig(logConfigInfo)
 logger = logging.getLogger("__main__")
 
-# Validate the input example file.
-fileDataset = args.input
-if not os.path.isfile(fileDataset):
-    logger.error("The location containing the input examples does not exist.")
-    isErrors = True
-
-# Validate the file of targets.
-if args.target:
-    if not os.path.isfile(args.target):
-        logger.error("The supplied location of the file of example targets is not a file.")
-        isErrors = True
-
 # Set default parameter values.
 config = Configuration.Configuration()
 try:
@@ -170,6 +159,29 @@ if args.config:
             logger.exception("Requested encoding {:s} to convert JSON strings to wasn't found.".format(args.encode))
             isErrors = True
 
+# Determine whether data processing is to take place.
+isProcessing = False
+if not args.noProcess and config.get_param(["DataProcessing"])[0]:
+    isProcessing = True
+
+# Validate the input data.
+inputData = args.input
+if not os.path.exists(inputData):
+    logger.error("The location containing the input data does not exist.")
+    isErrors = True
+if isProcessing and (not os.path.isfile(inputData)):
+    logger.error("The input dataset to be processed is not a file.")
+    isErrors = True
+elif (not isProcessing) and (not os.path.isdir(inputData)):
+    logger.error("No processing is selected. The input data should therefore be a directory, but isn't.")
+    isErrors = True
+
+# Validate the file of targets.
+if args.target:
+    if not os.path.isfile(args.target):
+        logger.error("The supplied location of the file of example targets is not a file.")
+        isErrors = True
+
 # Display errors if any were found.
 if isErrors:
     print("\nErrors were encountered while validating the input arguments. Please see the log file for details.\n")
@@ -178,23 +190,16 @@ if isErrors:
 # ================= #
 # Shard the Dataset #
 # ================= #
-
-# Determine whether data processing is to take place.
-isProcessing = False
-if not args.noProcess and config.get_param(["DataProcessing"])[0]:
-    isProcessing = True
-
-# Perform the sharding.
 if args.dataType == "img":
     # The data is image data.
     if isProcessing:
         logger.info("Now starting the processing of the image data.")
-        shard_data.shard_image(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
+        shard_data.shard_image(inputData, dirOutputDataPrep, config, args.target if args.target else None)
 elif args.dataType == "seq":
     # The data is sequence data.
     if isProcessing:
         logger.info("Now starting the processing of the sequence data.")
-        shard_data.shard_sequence(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
+        shard_data.shard_sequence(inputData, dirOutputDataPrep, config, args.target if args.target else None)
 else:
     # The data is vector data.
 
@@ -211,4 +216,7 @@ else:
     # Perform the processing and sharding if needed.
     if isProcessing:
         logger.info("Now starting the processing of the vector data.")
-        shard_data.shard_vector(fileDataset, dirOutputDataPrep, config, args.target if args.target else None)
+        shard_data.shard_vector(inputData, dirOutputDataPrep, config, args.target if args.target else None)
+
+    # Perform the training/testing/validation of the network.
+    Network.main.main_vector(dirOutput if isProcessing else inputData, config)
