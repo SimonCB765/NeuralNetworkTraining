@@ -15,7 +15,7 @@
     },
     "ExamplesPerShard": 1000,
     "Targets": {
-      "HeaderPresent": false,
+      "HeaderPresent": true,
       "IDVariable": 0,
       "Normalise": {
         "MinMaxScale": [],
