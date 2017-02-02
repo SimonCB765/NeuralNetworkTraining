@@ -22,8 +22,8 @@ else:
     from itertools import izip_longest
 
 
-def shard_image(fileExamples, dirOutput, config, fileTargets=None):
-    """Shard a dataset where each example is an image.
+def shard_matrix(fileExamples, dirOutput, config, fileTargets=None):
+    """Shard a dataset where each example is a matrix.
 
     :param fileExamples:    The location of the file containing the dataset of input examples.
     :type fileExamples:     str

@@ -33,7 +33,7 @@ parser.add_argument("-c", "--config",
                          "to the dataType (image, sequence or vector).",
                     type=str)
 parser.add_argument("-d", "--dataType",
-                    choices=["img", "seq", "vec"],
+                    choices=["mat", "seq", "vec"],
                     default="vec",
                     help="The type of the data supplied. This is either an image, sequence or single vector per "
                          "example. Default: each example is a single vector.",
@@ -69,11 +69,11 @@ dirOutput = args.output if args.output else dirOutput
 dirOutputDataPrep = os.path.join(dirOutput, "DataProcessing")
 fileDefaultConfig = os.path.join(
     dirTop, "ConfigurationFiles", "{:s}_Config.json".format(
-        "Image" if args.dataType == "img" else ("Sequence" if args.dataType == "seq" else "Vector")
+        "Matrix" if args.dataType == "mat" else ("Sequence" if args.dataType == "seq" else "Vector")
     ))
 fileConfigSchema = os.path.join(
     dirTop, "ConfigurationFiles", "{:s}_Schema.json".format(
-        "Image" if args.dataType == "img" else ("Sequence" if args.dataType == "seq" else "Vector")
+        "Matrix" if args.dataType == "mat" else ("Sequence" if args.dataType == "seq" else "Vector")
     ))
 isErrors = False  # Whether any errors were found.
 
@@ -190,11 +190,11 @@ if isErrors:
 # ================= #
 # Shard the Dataset #
 # ================= #
-if args.dataType == "img":
+if args.dataType == "mat":
     # The data is image data.
     if isProcessing:
-        logger.info("Now starting the processing of the image data.")
-        shard_data.shard_image(inputData, dirOutputDataPrep, config, args.target if args.target else None)
+        logger.info("Now starting the processing of the matrix data.")
+        shard_data.shard_matrix(inputData, dirOutputDataPrep, config, args.target if args.target else None)
 elif args.dataType == "seq":
     # The data is sequence data.
     if isProcessing:
