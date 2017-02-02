@@ -122,7 +122,7 @@
 
     "NetworkTraining": {
       "description": "Parameters for training the network.",
-      "required": ["Network"],
+      "required": ["Error", "Network"],
       "type": "object",
 
       "properties": {
@@ -131,6 +131,11 @@
           "description": "The batch size to use in the training.",
           "minimum": 1,
           "type": "integer"
+        },
+        "Error": {
+          "description": "The error metric to use.",
+          "enum": ["crossEnt"],
+          "type": "string"
         },
         "Network": {"$ref": "#/definitions/Network"},
         "NumberEpochs": {

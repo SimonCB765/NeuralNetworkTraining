@@ -29,6 +29,7 @@
   },
   "NetworkTraining": {
     "BatchSize": 32,
+    "Error": "crossEnt",
     "Network": {
       "Layers": [
         {"ActivationFunc": "relu", "LayerType": "fullyCon", "NumberNodes": 2}
