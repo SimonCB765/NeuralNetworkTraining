@@ -159,6 +159,11 @@ if args.config:
             logger.exception("Requested encoding {:s} to convert JSON strings to wasn't found.".format(args.encode))
             isErrors = True
 
+# Display any errors found while validating the configuration file.
+if isErrors:
+    print("\nErrors were encountered while validating the configuration file. Please see the log file for details.\n")
+    sys.exit()
+
 # Determine whether data processing is to take place.
 isProcessing = False
 if not args.noProcess and config.get_param(["DataProcessing"])[0]:
