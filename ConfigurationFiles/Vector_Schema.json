@@ -5,16 +5,6 @@
   "type": "object",
 
   "definitions": {
-    "VariableIndices": {
-      "description": "A collection of variable indices. Strings are treated as variable names and integers as numeric indices.",
-      "items": {
-        "anyOf": [
-          {"type": "string"},
-          {"type": "number"}
-        ]
-      },
-      "type": "array"
-    },
     "DatasetProcessing": {
       "description": "Parameters for processing the data.",
       "type": "object",
@@ -47,6 +37,61 @@
         },
         "VariablesToIgnore": {"$ref": "#/definitions/VariableIndices"}
       }
+    },
+    "Layer": {
+      "description": "A layer in the network.",
+      "required": ["ActivationFunc", "LayerType", "NumberNodes"],
+      "type": "object",
+
+      "properties": {
+        "ActivationFunc": {
+          "default": "relu",
+          "description": "The activation function to use.",
+          "enum": ["relu"],
+          "type": "string"
+        },
+        "LayerType": {
+          "default": "fullyCon",
+          "description": "The type of the layer",
+          "enum": ["fullyCon"],
+          "type": "string"
+        },
+        "NumberNodes": {
+          "description": "The number of nodes in the layer.",
+          "minimum": 1,
+          "type": "integer"
+        }
+      }
+    },
+    "Network": {
+      "description": "The network configuration.",
+      "required": ["Layers", "NetworkType"],
+      "type": "object",
+
+      "properties": {
+        "Layers": {
+          "description": "The layers in the network.",
+          "items": {"$ref": "#/definitions/Layer"},
+          "minItems": 1,
+          "type": "array"
+        },
+        "NetworkType": {
+          "default": "autoencoder",
+          "description": "The type of network to create",
+          "enum": ["autoencoder"],
+          "type": "string"
+        }
+      }
+    },
+    "VariableIndices": {
+      "description": "A collection of variable indices. Strings are treated as variable names and integers as numeric indices.",
+      "items": {
+        "anyOf": [
+          {"type": "string"},
+          {"type": "number"}
+        ]
+      },
+      "type": "array"
     }
   },
 
@@ -60,8 +105,8 @@
           "default": [0.7, 0.15, 0.15],
           "description": "How to split the dataset between train, test and validation sets.",
           "items": {"maximum": 1, "minimum": 0, "type": "number"},
-          "maxLength": 3,
-          "minLength": 1,
+          "maxItems": 3,
+          "minItems": 1,
           "type": "array"
         },
         "Examples": {"$ref": "#/definitions/DatasetProcessing"},
@@ -77,6 +122,7 @@
 
     "NetworkTraining": {
       "description": "Parameters for training the network.",
+      "required": ["Network"],
       "type": "object",
 
       "properties": {
@@ -86,6 +132,7 @@
           "minimum": 1,
           "type": "integer"
         },
+        "Network": {"$ref": "#/definitions/Network"},
         "NumberEpochs": {
           "default": 10,
           "description": "The number of epochs to use in the training.",

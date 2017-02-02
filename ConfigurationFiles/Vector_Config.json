@@ -29,6 +29,12 @@
   },
   "NetworkTraining": {
     "BatchSize": 32,
+    "Network": {
+      "Layers": [
+        {"ActivationFunc": "relu", "LayerType": "fullyCon", "NumberNodes": 2}
+      ],
+      "NetworkType": "autoencoder"
+    },
     "NumberEpochs": 10
   },
   "ExampleBOW": false,

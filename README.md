@@ -26,6 +26,10 @@ See the following links for information on JSON schema:
 - https://spacetelescope.github.io/understanding-json-schema/
 - https://spacetelescope.github.io/understanding-json-schema/UnderstandingJSONSchema.pdf
 
+
+The network description ignores the first layer, which is assumed to be one node for each input.
+
+
 Required items in the schema will be specified as required and have no default defined
 Items that need a value but can have sensible defaults defined have defaults defined. These are:
 
