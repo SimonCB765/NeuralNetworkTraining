@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "NeuralNetworkConfiguration",
+  "description": "A configuration file to define a neural network.",
+  "type": "object",
+
+  "definitions": {
+    "Layer": {
+      "description": "A layer in the network.",
+      "required": ["ActivationFunc", "LayerType", "NumberNodes"],
+      "type": "object",
+
+      "properties": {
+        "ActivationFunc": {
+          "default": "relu",
+          "description": "The activation function to use.",
+          "enum": ["relu"],
+          "type": "string"
+        },
+        "LayerType": {
+          "default": "fullyCon",
+          "description": "The type of the layer",
+          "enum": ["fullyCon"],
+          "type": "string"
+        },
+        "NumberNodes": {
+          "description": "The number of nodes in the layer.",
+          "minimum": 1,
+          "type": "integer"
+        }
+      }
+    }
+  },
+
+  "properties": {
+    "Network": {
+      "description": "The network configuration.",
+      "required": ["Layers", "NetworkType"],
+      "type": "object",
+
+      "properties": {
+        "Layers": {
+          "description": "The layers in the network.",
+          "items": {"$ref": "#/definitions/Layer"},
+          "minItems": 1,
+          "type": "array"
+        },
+        "NetworkType": {
+          "default": "autoencoder",
+          "description": "The type of network to create",
+          "enum": ["autoencoder"],
+          "type": "string"
+        }
+      }
+    }
+  }
+}

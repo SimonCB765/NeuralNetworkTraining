@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "NeuralNetworkConfiguration",
-  "description": "A configuration file used in training neural networks.",
+  "title": "VectorConfiguration",
+  "description": "A configuration file used to train networks from vector inputs.",
   "type": "object",
 
   "definitions": {
@@ -36,51 +36,6 @@
           "type": "string"
         },
         "VariablesToIgnore": {"$ref": "#/definitions/VariableIndices"}
-      }
-    },
-    "Layer": {
-      "description": "A layer in the network.",
-      "required": ["ActivationFunc", "LayerType", "NumberNodes"],
-      "type": "object",
-
-      "properties": {
-        "ActivationFunc": {
-          "default": "relu",
-          "description": "The activation function to use.",
-          "enum": ["relu"],
-          "type": "string"
-        },
-        "LayerType": {
-          "default": "fullyCon",
-          "description": "The type of the layer",
-          "enum": ["fullyCon"],
-          "type": "string"
-        },
-        "NumberNodes": {
-          "description": "The number of nodes in the layer.",
-          "minimum": 1,
-          "type": "integer"
-        }
-      }
-    },
-    "Network": {
-      "description": "The network configuration.",
-      "required": ["Layers", "NetworkType"],
-      "type": "object",
-
-      "properties": {
-        "Layers": {
-          "description": "The layers in the network.",
-          "items": {"$ref": "#/definitions/Layer"},
-          "minItems": 1,
-          "type": "array"
-        },
-        "NetworkType": {
-          "default": "autoencoder",
-          "description": "The type of network to create",
-          "enum": ["autoencoder"],
-          "type": "string"
-        }
       }
     },
     "VariableIndices": {
@@ -137,7 +92,7 @@
           "enum": ["crossEnt"],
           "type": "string"
         },
-        "Network": {"$ref": "#/definitions/Network"},
+        "Network": {"$ref": "file:ConfigurationFiles/Network_Schema.json"},
         "NumberEpochs": {
           "default": 10,
           "description": "The number of epochs to use in the training.",
