@@ -30,12 +30,12 @@ parser.add_argument("input", help="The location of the file/directory containing
 parser.add_argument("-c", "--config",
                     help="The location of the file containing the configuration parameters to use. "
                          "Default: a file called X_Config.json in the ConfigurationFiles directory where X corresponds"
-                         "to the dataType (image, sequence or vector).",
+                         "to the dataType (matrix, sequence or vector).",
                     type=str)
 parser.add_argument("-d", "--dataType",
                     choices=["mat", "seq", "vec"],
                     default="vec",
-                    help="The type of the data supplied. This is either an image, sequence or single vector per "
+                    help="The type of the data supplied. This is either a matrix, sequence or single vector per "
                          "example. Default: each example is a single vector.",
                     type=str)
 parser.add_argument("-e", "--encode",
@@ -67,15 +67,6 @@ dirTop = os.path.abspath(os.path.join(dirCurrent, os.pardir))
 dirOutput = os.path.join(dirTop, "Output")
 dirOutput = args.output if args.output else dirOutput
 dirOutputDataPrep = os.path.join(dirOutput, "DataProcessing")
-fileDefaultConfig = os.path.join(
-    dirTop, "ConfigurationFiles", "{:s}_Config.json".format(
-        "Matrix" if args.dataType == "mat" else ("Sequence" if args.dataType == "seq" else "Vector")
-    ))
-fileConfigSchema = os.path.join(
-    dirTop, "ConfigurationFiles", "{:s}_Schema.json".format(
-        "Matrix" if args.dataType == "mat" else ("Sequence" if args.dataType == "seq" else "Vector")
-    ))
-isErrors = False  # Whether any errors were found.
 
 # Create the output directory.
 overwrite = args.overwrite
@@ -105,32 +96,78 @@ logConfigInfo["handlers"]["file"]["filename"] = fileLogOutput
 logging.config.dictConfig(logConfigInfo)
 logger = logging.getLogger("__main__")
 
-# Set default parameter values.
+# Determine the location of the schema and default configuration files.
+dirConfiguration = os.path.join(dirTop, "ConfigurationFiles")
+fileDefaultConfig = os.path.join(  # The default configuration file for the given input type.
+    dirConfiguration, "{:s}_Config.json".format(
+        "Matrix" if args.dataType == "mat" else ("Sequence" if args.dataType == "seq" else "Vector")
+    ))
+fileBaseSchema = os.path.join(dirConfiguration, "Base_Schema.json")
+fileTypedSchema = os.path.join(  # The schema for the specific input type.
+    dirConfiguration, "{:s}_Schema.json".format(
+        "Matrix" if args.dataType == "mat" else ("Sequence" if args.dataType == "seq" else "Vector")
+    ))
+isErrors = False  # Whether any errors were found.
+
+# Create the configuration object.
 config = Configuration.Configuration()
+
+# Validate the base schema and set default values from it.
 try:
     if args.encode:
-        config.set_from_json(fileDefaultConfig, fileConfigSchema, args.encode)
+        config.set_from_json(fileDefaultConfig, fileBaseSchema, args.encode, schemaRoot=dirConfiguration)
     else:
-        config.set_from_json(fileDefaultConfig, fileConfigSchema)
+        config.set_from_json(fileDefaultConfig, fileBaseSchema, schemaRoot=dirConfiguration)
 except jsonschema.SchemaError as e:
     exceptionInfo = sys.exc_info()
     logger.error(
-        "The configuration schema is not a valid JSON schema. Please correct any changes made to the "
-        "schema or download the original and save it at {:s}.\n{:s}".format(fileConfigSchema, str(exceptionInfo[1]))
+        "The base schema is not a valid JSON schema. Please correct any changes made to the "
+        "schema or download the original and save it at {:s}.\n{:s}".format(fileBaseSchema, str(exceptionInfo[1]))
     )
     isErrors = True
 except jsonschema.ValidationError as e:
     exceptionInfo = sys.exc_info()
     logger.error(
-        "The default configuration file is not valid against the schema. Please correct any changes made to "
+        "The default configuration file is not valid against the base schema. Please correct any changes made to "
         "the file or download the original and save it at {:s}.\n{:s}".format(fileDefaultConfig, str(exceptionInfo[1]))
     )
     isErrors = True
 except jsonschema.RefResolutionError as e:
     exceptionInfo = sys.exc_info()
     logger.error(
-        "The configuration schema contains an invalid reference. Please correct any changes made to the "
-        "schema or download the original and save it at {:s}.\n{:s}".format(fileConfigSchema, str(exceptionInfo[1]))
+        "The base schema contains an invalid reference. Please correct any changes made to the "
+        "schema or download the original and save it at {:s}.\n{:s}".format(fileBaseSchema, str(exceptionInfo[1]))
+    )
+    isErrors = True
+except LookupError as e:
+    logger.exception("Requested encoding {:s} to convert JSON strings to wasn't found.".format(args.encode))
+    isErrors = True
+
+# Validate the input type specific schema and set default values from it.
+try:
+    if args.encode:
+        config.set_from_json(fileDefaultConfig, fileTypedSchema, args.encode, schemaRoot=dirConfiguration)
+    else:
+        config.set_from_json(fileDefaultConfig, fileTypedSchema, schemaRoot=dirConfiguration)
+except jsonschema.SchemaError as e:
+    exceptionInfo = sys.exc_info()
+    logger.error(
+        "The typed schema is not a valid JSON schema. Please correct any changes made to the "
+        "schema or download the original and save it at {:s}.\n{:s}".format(fileTypedSchema, str(exceptionInfo[1]))
+    )
+    isErrors = True
+except jsonschema.ValidationError as e:
+    exceptionInfo = sys.exc_info()
+    logger.error(
+        "The default configuration file is not valid against the typed schema. Please correct any changes made to "
+        "the file or download the original and save it at {:s}.\n{:s}".format(fileDefaultConfig, str(exceptionInfo[1]))
+    )
+    isErrors = True
+except jsonschema.RefResolutionError as e:
+    exceptionInfo = sys.exc_info()
+    logger.error(
+        "The typed schema contains an invalid reference. Please correct any changes made to the "
+        "schema or download the original and save it at {:s}.\n{:s}".format(fileTypedSchema, str(exceptionInfo[1]))
     )
     isErrors = True
 except LookupError as e:
@@ -143,15 +180,33 @@ if args.config:
         logger.error("The supplied location of the configuration file is not a file.")
         isErrors = True
     else:
+        # Set user configuration parameters validated against the base schema.
         try:
             if args.encode:
-                config.set_from_json(args.config, fileConfigSchema, args.encode)
+                config.set_from_json(args.config, fileBaseSchema, args.encode)
             else:
-                config.set_from_json(args.config, fileConfigSchema)
+                config.set_from_json(args.config, fileBaseSchema)
         except jsonschema.ValidationError as e:
             exceptionInfo = sys.exc_info()
             logger.error(
-                "The user provided configuration file is not valid against the schema.\n{:s}".format(
+                "The user provided configuration file is not valid against the base schema.\n{:s}".format(
+                    str(exceptionInfo[1]))
+            )
+            isErrors = True
+        except LookupError as e:
+            logger.exception("Requested encoding {:s} to convert JSON strings to wasn't found.".format(args.encode))
+            isErrors = True
+
+        # Set user configuration parameters validated against the input specific schema.
+        try:
+            if args.encode:
+                config.set_from_json(args.config, fileTypedSchema, args.encode)
+            else:
+                config.set_from_json(args.config, fileTypedSchema)
+        except jsonschema.ValidationError as e:
+            exceptionInfo = sys.exc_info()
+            logger.error(
+                "The user provided configuration file is not valid against the typed schema.\n{:s}".format(
                     str(exceptionInfo[1]))
             )
             isErrors = True

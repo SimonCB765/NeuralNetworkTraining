@@ -1,139 +1,24 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "VectorConfiguration",
-  "description": "A configuration file used to train networks from vector inputs.",
+  "title": "VectorSchema",
+  "description": "A schema containing the additional definitions used to train networks from vector inputs.",
   "type": "object",
 
   "definitions": {
-    "DatasetProcessing": {
-      "description": "Parameters for processing the data.",
+    "Normalisers": {
+      "description": "Parameters indicating which variables should be normalised and how they should be normalised.",
       "type": "object",
 
       "properties": {
-        "HeaderPresent": {
-          "default": false,
-          "description": "Whether the first row of the file is a header.",
-          "type": "boolean"
-        },
-        "IDVariable": {
-          "description": "The column number or name of the variable for the values used to index the data.",
-          "oneOf": [{"type": "integer"}, {"type": "string"}]
-        },
-        "Normalise": {
-          "description": "Parameters indicating which variables should be normalised and how they should be normalised.",
-          "type": "object",
-
-          "properties": {
-            "MinMaxScale": {"$ref": "#/definitions/VariableIndices"},
-            "OneOfC": {"$ref": "#/definitions/VariableIndices"},
-            "OneOfC-1": {"$ref": "#/definitions/VariableIndices"},
-            "Standardise": {"$ref": "#/definitions/VariableIndices"}
-          }
-        },
-        "Separator": {
-          "default": "\t",
-          "description": "The separator between the variables in the file.",
-          "type": "string"
-        },
-        "VariablesToIgnore": {"$ref": "#/definitions/VariableIndices"}
+        "MinMaxScale": {"$ref": "file:Base_Schema.json#/definitions/VariableIndices"},
+        "OneOfC": {"$ref": "file:Base_Schema.json#/definitions/VariableIndices"},
+        "OneOfC-1": {"$ref": "file:Base_Schema.json#/definitions/VariableIndices"},
+        "Standardise": {"$ref": "file:Base_Schema.json#/definitions/VariableIndices"}
       }
-    },
-    "VariableIndices": {
-      "description": "A collection of variable indices. Strings are treated as variable names and integers as numeric indices.",
-      "items": {
-        "anyOf": [
-          {"type": "string"},
-          {"type": "number"}
-        ]
-      },
-      "type": "array"
     }
   },
 
   "properties": {
-    "DataProcessing": {
-      "description": "Parameters for processing the data.",
-      "type": "object",
-
-      "properties": {
-        "DataSplit": {
-          "default": [0.7, 0.15, 0.15],
-          "description": "How to split the dataset between train, test and validation sets.",
-          "items": {"maximum": 1, "minimum": 0, "type": "number"},
-          "maxItems": 3,
-          "minItems": 1,
-          "type": "array"
-        },
-        "Examples": {"$ref": "#/definitions/DatasetProcessing"},
-        "ExamplesPerShard": {
-          "default": 1000,
-          "description": "The number of examples to save in each shard.",
-          "minimum": 1,
-          "type": "integer"
-        },
-        "Targets": {"$ref": "#/definitions/DatasetProcessing"}
-      }
-    },
-
-    "NetworkTraining": {
-      "description": "Parameters for training the network.",
-      "required": ["Error", "Network"],
-      "type": "object",
-
-      "properties": {
-        "BatchSize": {
-          "default": 32,
-          "description": "The batch size to use in the training.",
-          "minimum": 1,
-          "type": "integer"
-        },
-        "Error": {
-          "description": "The error metric to use.",
-          "enum": ["crossEnt"],
-          "type": "string"
-        },
-        "Network": {"$ref": "file:ConfigurationFiles/Network_Schema.json"},
-        "NumberEpochs": {
-          "default": 10,
-          "description": "The number of epochs to use in the training.",
-          "minimum": 1,
-          "type": "integer"
-        }
-      }
-    },
-
-    "TensorflowParams": {
-      "description": "Parameters for tensorflow-specific functions.",
-      "type": "object",
-
-      "properties": {
-        "BatcherCapacity": {
-          "default": 5000,
-          "description": "The maximum number of elements in the batching queue.",
-          "minimum": 1000,
-          "type": "integer"
-        },
-        "BatcherMinAfterDequeue": {
-          "default": 1000,
-          "description": "The minimum number of elements that must be in the batcher queue after a dequeue.",
-          "minimum": 100,
-          "type": "integer"
-        },
-        "FileQueueCapacity": {
-          "default": 32,
-          "description": "The capacity of the node that queues shuffled filenames for the input pipeline.",
-          "minimum": 1,
-          "type": "integer"
-        },
-        "NumberThreads": {
-          "default": 2,
-          "description": "The number of threads to use in the batching.",
-          "minimum": 1,
-          "type": "integer"
-        }
-      }
-    },
-
     "ExampleBOW": {
       "default": false,
       "description": "Whether the example data is in a bag-of-words format.",
@@ -143,12 +28,6 @@
       "default": false,
       "description": "Whether the target data is in a bag-of-words format.",
       "type": "boolean"
-    },
-
-    "RandomSeed": {
-      "default": 0,
-      "description": "The random seed to use to initialise the random number generators.",
-      "type": "integer"
     }
   }
 }

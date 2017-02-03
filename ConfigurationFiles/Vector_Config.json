@@ -27,15 +27,15 @@
       "VariablesToIgnore": []
     }
   },
+  "Network": {
+    "Layers": [
+      {"ActivationFunc": "relu", "LayerType": "fullyCon", "NumberNodes": 2}
+    ],
+    "NetworkType": "autoencoder"
+  },
   "NetworkTraining": {
     "BatchSize": 32,
     "Error": "crossEnt",
-    "Network": {
-      "Layers": [
-        {"ActivationFunc": "relu", "LayerType": "fullyCon", "NumberNodes": 2}
-      ],
-      "NetworkType": "autoencoder"
-    },
     "NumberEpochs": 10
   },
   "ExampleBOW": false,

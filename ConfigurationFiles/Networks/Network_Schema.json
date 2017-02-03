@@ -7,7 +7,6 @@
   "definitions": {
     "Layer": {
       "description": "A layer in the network.",
-      "required": ["ActivationFunc", "LayerType", "NumberNodes"],
       "type": "object",
 
       "properties": {
@@ -28,30 +27,26 @@
           "minimum": 1,
           "type": "integer"
         }
-      }
+      },
+
+      "required": ["ActivationFunc", "LayerType", "NumberNodes"]
     }
   },
 
   "properties": {
-    "Network": {
-      "description": "The network configuration.",
-      "required": ["Layers", "NetworkType"],
-      "type": "object",
-
-      "properties": {
-        "Layers": {
-          "description": "The layers in the network.",
-          "items": {"$ref": "#/definitions/Layer"},
-          "minItems": 1,
-          "type": "array"
-        },
-        "NetworkType": {
-          "default": "autoencoder",
-          "description": "The type of network to create",
-          "enum": ["autoencoder"],
-          "type": "string"
-        }
-      }
+    "Layers": {
+      "description": "The layers in the network.",
+      "items": {"$ref": "#/definitions/Layer"},
+      "minItems": 1,
+      "type": "array"
+    },
+    "NetworkType": {
+      "default": "autoencoder",
+      "description": "The type of network to create",
+      "enum": ["autoencoder"],
+      "type": "string"
     }
-  }
+  },
+
+  "required": ["Layers", "NetworkType"]
 }
