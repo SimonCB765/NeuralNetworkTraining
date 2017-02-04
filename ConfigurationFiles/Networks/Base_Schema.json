@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "NeuralNetworkSchema",
+  "description": "A schema file defining the basic requirements of all network schemas.",
+  "type": "object",
+
+  "definitions": {
+    "Layer": {
+      "description": "A layer in the network.",
+      "type": "object",
+
+      "properties": {
+        "ActivationFunc": {
+          "default": "DefaultActivationFunc",
+          "description": "The activation function to use.",
+          "enum": ["ActivationFunc1", "ActivationFunc2", "ActivationFunc3", "..."],
+          "type": "string"
+        },
+        "NumberNodes": {
+          "description": "The number of nodes in the layer.",
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+
+      "required": ["ActivationFunc", "NumberNodes"]
+    }
+  },
+
+  "properties": {
+    "Layers": {
+      "description": "The layers in the network.",
+      "items": {"$ref": "#/definitions/Layer"},
+      "minItems": 1,
+      "type": "array"
+    },
+    "NetworkType": {
+      "default": "SomeNetworkType",
+      "description": "The type of network to create.",
+      "enum": ["SomeNetworkType"],
+      "type": "string"
+    }
+  },
+
+  "required": ["Layers", "NetworkType"]
+}

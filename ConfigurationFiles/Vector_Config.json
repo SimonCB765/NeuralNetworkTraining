@@ -29,7 +29,7 @@
   },
   "Network": {
     "Layers": [
-      {"ActivationFunc": "relu", "LayerType": "fullyCon", "NumberNodes": 2}
+      {"ActivationFunc": "relu", "NumberNodes": 2}
     ],
     "NetworkType": "autoencoder"
   },

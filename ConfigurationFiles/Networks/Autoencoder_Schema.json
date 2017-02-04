@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "NeuralNetworkConfiguration",
-  "description": "A configuration file to define a neural network.",
+  "title": "AutoencoderSchema",
+  "description": "A schema containing the additional definitions used to train an autoencoder.",
   "type": "object",
 
   "definitions": {
@@ -16,12 +16,6 @@
           "enum": ["relu"],
           "type": "string"
         },
-        "LayerType": {
-          "default": "fullyCon",
-          "description": "The type of the layer",
-          "enum": ["fullyCon"],
-          "type": "string"
-        },
         "NumberNodes": {
           "description": "The number of nodes in the layer.",
           "minimum": 1,
@@ -29,7 +23,7 @@
         }
       },
 
-      "required": ["ActivationFunc", "LayerType", "NumberNodes"]
+      "required": ["ActivationFunc", "NumberNodes"]
     }
   },
 
@@ -41,10 +35,16 @@
       "type": "array"
     },
     "NetworkType": {
-      "default": "autoencoder",
       "description": "The type of network to create",
       "enum": ["autoencoder"],
       "type": "string"
+    },
+    "Noise": {
+      "default": 0,
+      "description": "The noise to add in a denoising autoencoder.",
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
     }
   },
 
