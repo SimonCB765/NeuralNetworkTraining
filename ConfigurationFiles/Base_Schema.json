@@ -19,7 +19,13 @@
           "description": "The column number or name of the variable for the values used to index the data.",
           "oneOf": [{"type": "integer"}, {"type": "string"}]
         },
-        "Normalise": {"$ref": "file:Vector_Schema.json#/definitions/Normalisers"},
+        "Normalise": {
+          "description": "Parameters indicating which variables should be normalised and how they should be normalised.",
+
+          "anyOf": [
+            {"$ref": "file:Vector_Schema.json#/definitions/Normalisers"}
+          ]
+        },
         "Separator": {
           "default": "\t",
           "description": "The separator between the variables in the file.",
