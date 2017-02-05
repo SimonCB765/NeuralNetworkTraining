@@ -71,14 +71,6 @@
       }
     },
 
-    "Network": {
-      "description": "The structure of the network to use and any parameters specific to it.",
-
-      "oneOf": [
-        {"$ref": "file:Networks/Autoencoder_Schema.json"}
-      ]
-    },
-
     "NetworkTraining": {
       "description": "Parameters for training the network.",
       "type": "object",

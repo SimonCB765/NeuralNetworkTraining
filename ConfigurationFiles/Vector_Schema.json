@@ -19,6 +19,14 @@
   },
 
   "properties": {
+    "Network": {
+      "description": "The structure of the network to use and any parameters specific to it.",
+
+      "oneOf": [
+        {"$ref": "file:Networks/Autoencoder_Schema.json"}
+      ]
+    },
+
     "ExampleBOW": {
       "default": false,
       "description": "Whether the example data is in a bag-of-words format.",
