@@ -30,9 +30,9 @@ def main_vector(dirData, config):
 
     # Create the operation that will create the graph, etc.
     try:
-        initOp = tf.group(tf.global_variables_initializer(), tf.initialize_local_variables())
+        initOp = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     except AttributeError:
-        initOp = tf.group(tf.initialize_all_variables(), tf.initialize_local_variables())
+        initOp = tf.group(tf.initialize_all_variables(), tf.local_variables_initializer())
 
     # Create a session for running operations in the Graph.
     session = tf.Session()

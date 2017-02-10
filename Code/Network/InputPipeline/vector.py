@@ -53,7 +53,8 @@ def main(dirShardedFiles, config):
     batcherCapacity = config.get_param(["TensorflowParams", "BatcherCapacity"])[1]
     batcherCapacity = max(batcherCapacity, batcherMinAfterDequeue + (numberThreads + 2) * batchSize)
     batchedSerialisedExamples = tf.train.shuffle_batch_join(
-        serialisedExamples, batchSize, capacity=batcherCapacity, min_after_dequeue=batcherMinAfterDequeue, seed=randomSeed
+        serialisedExamples, batchSize, capacity=batcherCapacity, min_after_dequeue=batcherMinAfterDequeue,
+        seed=randomSeed
     )
 
     # Define the feature mapping used for decoding examples. As we don't know the number of variables in advance, we
