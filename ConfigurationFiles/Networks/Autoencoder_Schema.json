@@ -13,7 +13,7 @@
         "ActivationFunc": {
           "default": "relu",
           "description": "The activation function to use.",
-          "enum": ["relu", "sigmoid"],
+          "enum": ["linear", "relu", "sigmoid"],
           "type": "string"
         },
         "NumberNodes": {
