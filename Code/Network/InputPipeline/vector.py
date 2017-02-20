@@ -14,6 +14,8 @@ def main(dirShardedFiles, config):
     :type dirShardedFiles:      str
     :param config:              The object containing the configuration parameters for the sharding.
     :type config:               JsonschemaManipulation.Configuration
+    :return:                    The batched examples and targets.
+    :rtype:                     Dense tensors of type tf.float32.
 
     """
 
