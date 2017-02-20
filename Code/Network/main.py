@@ -1,11 +1,13 @@
 """Code to coordinate the running of the network training/testing/validation."""
 
 # Python imports.
+import json
 import logging
 import os
 
 # User imports.
 from . import InputPipeline
+from . import Structure
 
 # 3rd party imports.
 import tensorflow as tf
@@ -19,10 +21,21 @@ def main_vector(dirData, config):
 
     :param dirData:     The location of the directory containing the data to use.
     :type dirData:      str
-    :param config:      The object containing the configuration parameters for the sharding.
+    :param config:      The object containing the configuration parameters for the network.
     :type config:       JsonschemaManipulation.Configuration
 
     """
+
+    # Define the location where the processed data is recorded.
+    dirProcessedData = os.path.join(dirData, "DataProcessing")
+
+    # Determine the number of example and target variables.
+    fileNumVars = os.path.join(dirProcessedData, "NumVariables.json")
+    fidNumVars = open(fileNumVars, 'r')
+    numberVariables = json.load(fidNumVars)
+    fidNumVars.close()
+    numExampleVars = numberVariables["NumExampleVariables"]
+    numTargetVars = numberVariables["NumTargetVariables"]
 
     # Tell TensorFlow that the model will be built into the default Graph.
     with tf.Graph().as_default():
@@ -31,8 +44,25 @@ def main_vector(dirData, config):
         tf.set_random_seed(randomSeed)
 
         # Setup the input pipeline that generates mini-batches.
-        dirShardedFiles = os.path.join(dirData, "DataProcessing")
-        batchExamples, batchTargets = InputPipeline.vector.main(dirShardedFiles, config)
+        LOGGER.info("Now setting up the input pipeline.")
+        batchExamples, batchTargets = InputPipeline.vector.main(dirProcessedData, config)
+
+        # Setup the network structure. The network is built in a four stage approach:
+        #   1) inference()  - This operation will build the graph as far as is needed to make predictions (i.e. up to
+        #                     the end of a forward pass).
+        #   2) loss()       - This will add to the graph the operations required to calculate the loss.
+        #   3) training()   - This will add to the graph the operations required to compute and apply gradients.
+        #   4) evaluation() - This will add to the graph the operations required to perform an evaluation of the
+        #                     performance of the network.
+        LOGGER.info("Now creating the network.")
+        networkType = config.get_param(["Network", "NetworkType"])[1]
+        if networkType == "autoencoder":
+            # https://www.tensorflow.org/tutorials/mnist/tf/
+            # https://github.com/tensorflow/tensorflow/tree/master/tensorflow/examples/tutorials/mnist
+            # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/examples/tutorials/mnist/fully_connected_feed.py
+            # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/examples/tutorials/mnist/mnist.py
+            inference = Structure.denoising_autoencoder.inference(batchExamples, numExampleVars, config)
+        LOGGER.info("Network created.")
 
         # Create the operation that will create the graph, etc.
         try:
