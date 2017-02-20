@@ -3,8 +3,10 @@
 # Python imports.
 import logging
 import math
+import random
 
 # 3rd party imports.
+import numpy as np
 import tensorflow as tf
 
 # Globals.
@@ -32,6 +34,14 @@ def inference(examples, numExampleVars, config):
     # Extract the information about the layers of the network from the configuration file.
     networkLayers = config.get_param(["Network", "Layers"])[1]
 
+    # Corrupt the input with noise.
+    batchSize = int(config.get_param(["NetworkTraining", "BatchSize"])[1])
+    noiseLevel = float(config.get_param(["Network", "Noise"])[1])
+    noiseMask = np.array([1.0 if (random.random() >= noiseLevel) else 0.0 for _ in range(batchSize * numExampleVars)])
+    noiseMask = noiseMask.reshape((batchSize, numExampleVars))
+    noiseMask = tf.convert_to_tensor(noiseMask, dtype=tf.float32)
+    noisyExamples = tf.multiply(examples, noiseMask)
+
     # Create the non-input layers.
     layerOutputs = {}
     for i, j in enumerate(networkLayers):
@@ -47,7 +57,7 @@ def inference(examples, numExampleVars, config):
             # Determine number of nodes and activations from the previous layer. If the current layer is the first
             # defined layer, then the previous layer is the input examples.
             numSourceNodes = numExampleVars if i == 0 else networkLayers[i - 1]["NumberNodes"]
-            prevLayerOutput = examples if i == 0 else layerOutputs[i - 1]
+            prevLayerOutput = noisyExamples if i == 0 else layerOutputs[i - 1]
 
             # Create the weights, biases and outputs for the layer.
             weights = tf.Variable(
@@ -64,6 +74,7 @@ def inference(examples, numExampleVars, config):
                 outputs = tf.matmul(prevLayerOutput, weights) + biases
             layerOutputs[i] = outputs
 
+    # Return the output layer.
     return layerOutputs[len(networkLayers) - 1]
 
 

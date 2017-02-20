@@ -54,13 +54,12 @@ def main_vector(dirData, config):
         #   3) training()   - This will add to the graph the operations required to compute and apply gradients.
         #   4) evaluation() - This will add to the graph the operations required to perform an evaluation of the
         #                     performance of the network.
+        # A network construction example can be found https://www.tensorflow.org/get_started/mnist/mechanics and code
+        # https://www.tensorflow.org/get_started/mnist/mechanics.
         LOGGER.info("Now creating the network.")
         networkType = config.get_param(["Network", "NetworkType"])[1]
         if networkType == "autoencoder":
-            # https://www.tensorflow.org/tutorials/mnist/tf/
-            # https://github.com/tensorflow/tensorflow/tree/master/tensorflow/examples/tutorials/mnist
-            # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/examples/tutorials/mnist/fully_connected_feed.py
-            # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/examples/tutorials/mnist/mnist.py
+            # Create an autoencoder network.
             inference = Structure.denoising_autoencoder.inference(batchExamples, numExampleVars, config)
         LOGGER.info("Network created.")
 
@@ -84,7 +83,7 @@ def main_vector(dirData, config):
         try:
             # Run the training operations until the coordinator says to stop.
             while not coordinator.should_stop():
-                examples, targets = session.run([batchExamples, batchTargets])
+                inf = session.run(inference)
         except tf.errors.OutOfRangeError:
             LOGGER.info("Done training. Epoch limit reached.")
         finally:

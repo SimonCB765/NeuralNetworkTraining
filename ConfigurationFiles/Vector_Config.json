@@ -6,8 +6,8 @@
       "IDVariable": 0,
       "Normalise": {
         "MinMaxScale": [],
-        "OneOfC": [],
-        "OneOfC-1": [],
+        "OneOfC": ["VarCat1"],
+        "OneOfC-1": ["VarCat2"],
         "Standardise": []
       },
       "Separator": "\t",
@@ -29,14 +29,16 @@
   },
   "Network": {
     "Layers": [
-      {"ActivationFunc": "relu", "NumberNodes": 2}
+      {"ActivationFunc": "relu", "NumberNodes": 6},
+      {"ActivationFunc": "relu", "NumberNodes": 3},
+      {"ActivationFunc": "linear", "NumberNodes": 2}
     ],
     "NetworkType": "autoencoder"
   },
   "NetworkTraining": {
     "BatchSize": 32,
     "Error": "crossEnt",
-    "NumberEpochs": 10
+    "NumberEpochs": 3
   },
   "ExampleBOW": false,
   "TargetBOW": false,
