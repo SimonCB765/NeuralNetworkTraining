@@ -50,11 +50,6 @@ def inference(examples, numExampleVars, config):
             prevLayerOutput = examples if i == 0 else layerOutputs[i - 1]
 
             # Create the weights, biases and outputs for the layer.
-            # The shape if the input examples (i.e. the number of input variables) is unknown at construction time (and
-            # only later determined at runtime). The variable containing the weights between the input layer and the
-            # first hidden layer therefore needs to be defined with a shape that can not be determined at construction
-            # time. To accommodate this we perform no validation of the input shape.
-            # See http://stackoverflow.com/a/34082273 for a brief description.
             weights = tf.Variable(
                 tf.truncated_normal([numSourceNodes, numNodesInLayer], stddev=1.0 / math.sqrt(float(numNodesInLayer))),
                 name="weights"
