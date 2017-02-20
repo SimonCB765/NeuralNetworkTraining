@@ -1,6 +1,7 @@
 """Code to shard a large dataset file into multiple small ones."""
 
 # Python imports.
+import json
 import logging
 import os
 import random
@@ -228,6 +229,16 @@ def shard_vector(fileExamples, dirOutput, config, fileTargets=None):
             else:
                 # The example/target will not go to any of the sets.
                 pass
+
+    # Determine number of example and target variables, and record this.
+    variableNumbers = {
+        "NumExampleVariables": exampleDatapoint[0] if isExamplesBOW else len(exampleDatapoint),
+        "NumTargetVariables": targetDatapoint[0] if isTargetsBOW else len(targetDatapoint)
+    }
+    fileNumVars = os.path.join(dirOutput, "NumVariables.json")
+    fidNumVars = open(fileNumVars, 'w')
+    json.dump(variableNumbers, fidNumVars)
+    fidNumVars.close()
 
     # Close the final shard file.
     fidTrainingShard.close()
