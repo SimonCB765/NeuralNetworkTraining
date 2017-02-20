@@ -28,11 +28,8 @@ def main(dirShardedFiles, config):
 
     # Create the node that shuffles filenames and places them in a queue for consumption by the input pipeline.
     numberEpochs = config.get_param(["NetworkTraining", "NumberEpochs"])[1]
-    randomSeed = config.get_param(["RandomSeed"])[1]
     trainingFiles = tf.train.match_filenames_once("{:s}/TrainingData/Shard_*".format(dirShardedFiles))
-    filenameQueue = tf.train.string_input_producer(
-        trainingFiles, num_epochs=numberEpochs, shuffle=True, seed=randomSeed
-    )
+    filenameQueue = tf.train.string_input_producer(trainingFiles, num_epochs=numberEpochs, shuffle=True)
 
     # Create the reader to read from the filename queue. In order to create mini-batches by reading from multiple files
     # we create a number of readers that share the same filename queue. This ensures that the different readers use
@@ -56,7 +53,6 @@ def main(dirShardedFiles, config):
     batcherCapacity = max(batcherCapacity, batcherMinAfterDequeue + (numberThreads + 2) * batchSize)
     batchedSerialisedExamples = tf.train.shuffle_batch_join(
         serialisedExamples, batchSize, capacity=batcherCapacity, min_after_dequeue=batcherMinAfterDequeue,
-        seed=randomSeed
     )
 
     # Define the feature mapping used for decoding examples. As we don't know the number of variables in advance, we

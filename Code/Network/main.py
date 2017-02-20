@@ -24,6 +24,10 @@ def main_vector(dirData, config):
 
     """
 
+    # Set the graph-level random seed.
+    randomSeed = config.get_param(["RandomSeed"])[1]
+    tf.set_random_seed(randomSeed)
+
     # Setup the input pipeline that generates mini-batches.
     dirShardedFiles = os.path.join(dirData, "DataProcessing")
     batchExamples, batchTargets = InputPipeline.vector.main(dirShardedFiles, config)
