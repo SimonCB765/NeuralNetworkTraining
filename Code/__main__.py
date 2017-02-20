@@ -36,7 +36,7 @@ parser.add_argument("-d", "--dataType",
                     choices=["mat", "seq", "vec"],
                     default="vec",
                     help="The type of the data supplied. This is either a matrix, sequence or single vector per "
-                         "example. Default: each example is a single vector.",
+                         "example. Default: vec (each example is a single vector).",
                     type=str)
 parser.add_argument("-e", "--encode",
                     default=None,
