@@ -24,41 +24,43 @@ def main_vector(dirData, config):
 
     """
 
-    # Set the graph-level random seed.
-    randomSeed = config.get_param(["RandomSeed"])[1]
-    tf.set_random_seed(randomSeed)
+    # Tell TensorFlow that the model will be built into the default Graph.
+    with tf.Graph().as_default():
+        # Set the graph-level random seed.
+        randomSeed = config.get_param(["RandomSeed"])[1]
+        tf.set_random_seed(randomSeed)
 
-    # Setup the input pipeline that generates mini-batches.
-    dirShardedFiles = os.path.join(dirData, "DataProcessing")
-    batchExamples, batchTargets = InputPipeline.vector.main(dirShardedFiles, config)
+        # Setup the input pipeline that generates mini-batches.
+        dirShardedFiles = os.path.join(dirData, "DataProcessing")
+        batchExamples, batchTargets = InputPipeline.vector.main(dirShardedFiles, config)
 
-    # Create the operation that will create the graph, etc.
-    try:
-        initOp = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
-    except AttributeError:
-        initOp = tf.group(tf.initialize_all_variables(), tf.local_variables_initializer())
+        # Create the operation that will create the graph, etc.
+        try:
+            initOp = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
+        except AttributeError:
+            initOp = tf.group(tf.initialize_all_variables(), tf.local_variables_initializer())
 
-    # Create a session for running operations in the Graph.
-    session = tf.Session()
+        # Create a session for running operations in the Graph.
+        session = tf.Session()
 
-    # Initialize the variables (like the epoch counter).
-    session.run(initOp)
+        # Initialize the variables (like the epoch counter).
+        session.run(initOp)
 
-    # Start input enqueue threads.
-    coordinator = tf.train.Coordinator()
-    threads = tf.train.start_queue_runners(sess=session, coord=coordinator)
+        # Start input enqueue threads.
+        coordinator = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(sess=session, coord=coordinator)
 
-    # Run the created training operations.
-    try:
-        # Run the training operations until the coordinator says to stop.
-        while not coordinator.should_stop():
-            examples, targets = session.run([batchExamples, batchTargets])
-    except tf.errors.OutOfRangeError:
-        LOGGER.info("Done training. Epoch limit reached.")
-    finally:
-        # When done, ask the threads to stop.
-        coordinator.request_stop()
+        # Run the created training operations.
+        try:
+            # Run the training operations until the coordinator says to stop.
+            while not coordinator.should_stop():
+                examples, targets = session.run([batchExamples, batchTargets])
+        except tf.errors.OutOfRangeError:
+            LOGGER.info("Done training. Epoch limit reached.")
+        finally:
+            # When done, ask the threads to stop.
+            coordinator.request_stop()
 
-    # Wait for the threads to finish.
-    coordinator.join(threads)
-    session.close()
+        # Wait for the threads to finish.
+        coordinator.join(threads)
+        session.close()
