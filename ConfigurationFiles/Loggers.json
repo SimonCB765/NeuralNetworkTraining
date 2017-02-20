@@ -32,6 +32,10 @@
       "handlers": ["console", "file"],
       "level": "DEBUG"
     },
+    "Network": {
+      "handlers": ["console", "file"],
+      "level": "DEBUG"
+    },
     "Utilities": {
       "handlers": ["console", "file"],
       "level": "DEBUG"
