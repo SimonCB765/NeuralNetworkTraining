@@ -55,7 +55,7 @@ def main_vector(dirData, config):
         #   4) evaluation() - This will add to the graph the operations required to perform an evaluation of the
         #                     performance of the network.
         # A network construction example can be found https://www.tensorflow.org/get_started/mnist/mechanics and code
-        # https://www.tensorflow.org/get_started/mnist/mechanics.
+        # https://github.com/tensorflow/tensorflow/tree/master/tensorflow/examples/tutorials/mnist.
         LOGGER.info("Now creating the network.")
         networkType = config.get_param(["Network", "NetworkType"])[1]
         if networkType == "autoencoder":
