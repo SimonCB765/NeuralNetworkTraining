@@ -88,9 +88,7 @@
           "minimum": 1,
           "type": "integer"
         }
-      },
-
-      "required": ["Error"]
+      }
     },
 
     "TensorflowParams": {
