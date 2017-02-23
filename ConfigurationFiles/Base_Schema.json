@@ -82,11 +82,6 @@
           "minimum": 1,
           "type": "integer"
         },
-        "Error": {
-          "description": "The error metric to use.",
-          "enum": ["crossEnt"],
-          "type": "string"
-        },
         "NumberEpochs": {
           "default": 10,
           "description": "The number of epochs to use in the training.",

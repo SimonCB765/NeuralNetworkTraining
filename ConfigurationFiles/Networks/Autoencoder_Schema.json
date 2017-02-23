@@ -28,6 +28,11 @@
   },
 
   "properties": {
+    "Error": {
+      "description": "The error metric to use.",
+      "enum": ["mse"],
+      "type": "string"
+    },
     "Layers": {
       "description": "The layers in the network.",
       "items": {"$ref": "#/definitions/Layer"},
@@ -48,5 +53,5 @@
     }
   },
 
-  "required": ["Layers", "NetworkType"]
+  "required": ["Error", "Layers", "NetworkType"]
 }
